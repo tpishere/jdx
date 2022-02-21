@@ -42,6 +42,15 @@ public class QLService {
     public void submitCk(String mobile, String code, String displayName, String remark) throws Exception {
         JdInfo jdInfo = jdService.login(mobile, code);
         String cookie = jdInfo.getCookie();
+
+        // 获取存在的env
+        String ptPin = getPtPinFromCK(cookie);
+        JSONObject existEnv = this.getExistCK(displayName, StrUtil.format("pt_pin={};", ptPin));
+        if (!existEnv.isEmpty()) {
+            // 不更新备注
+            remark = existEnv.getString("remarks");
+        }
+
         this.addEnv(displayName, "JD_COOKIE", cookie, remark);
     }
 
