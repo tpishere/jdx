@@ -3,6 +3,7 @@ package cn.yiidii.jdx.controller;
 import cn.hutool.core.util.DesensitizedUtil;
 import cn.hutool.core.util.PhoneUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.yiidii.jdx.config.prop.JDUserConfigProperties;
 import cn.yiidii.jdx.config.prop.SystemConfigProperties;
 import cn.yiidii.jdx.config.prop.SystemConfigProperties.QLConfig;
 import cn.yiidii.jdx.model.R;
@@ -43,6 +44,7 @@ public class IndexController {
     private final JdService jdService;
     private final QLService qlService;
     private final SystemConfigProperties systemConfigProperties;
+    private final JDUserConfigProperties jdUserConfigProperties;
 
     @GetMapping("/jd/smsCode")
     public R<JdInfo> qrCode(@RequestParam @NotNull(message = "请填写手机号") String mobile) throws Exception {
@@ -102,5 +104,25 @@ public class IndexController {
         jo.put("sources", sources);
         jo.put("qls", systemConfigProperties.getQls().stream().map(QLConfig::getDisplayName).distinct().collect(Collectors.toList()));
         return R.ok(jo);
+    }
+
+    /**
+     * 绑定wxPusherUid
+     *
+     * @param paramJo 参数
+     * @return R
+     */
+    @GetMapping("bindWXPusherUid")
+    public R<?> bindWXPushUid(@RequestBody JSONObject paramJo) {
+        String ptPin = paramJo.getString("ptPin");
+        String wxPusherUid = paramJo.getString("wxPusherUid");
+        Assert.isTrue(StrUtil.isNotBlank(ptPin), () -> {
+            throw new BizException("pt_pin不能为空");
+        });
+        Assert.isTrue(StrUtil.isNotBlank(wxPusherUid), () -> {
+            throw new BizException("wxPusherUid不能为空");
+        });
+        jdUserConfigProperties.bindWXPusherUid(ptPin, wxPusherUid);
+        return R.ok(null, "绑定成功");
     }
 }
