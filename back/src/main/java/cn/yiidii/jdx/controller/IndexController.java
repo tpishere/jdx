@@ -87,6 +87,7 @@ public class IndexController {
         JSONObject jo = new JSONObject();
         jo.put("title", systemConfigProperties.getTitle());
         jo.put("notice", systemConfigProperties.getNotice());
+        jo.put("noticeModel", systemConfigProperties.getNoticeModel());
         List<JSONObject> sources = systemConfigProperties.getSocialPlatforms().stream()
                 .filter(e -> Objects.nonNull(SocialPlatformEnum.get(e.getSource())))
                 .map(e -> {

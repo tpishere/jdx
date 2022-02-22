@@ -58,6 +58,7 @@ public class AdminController {
         JSONObject result = new JSONObject();
         result.put("title", systemConfigProperties.getTitle());
         result.put("notice", systemConfigProperties.getNotice());
+        result.put("noticeModel", systemConfigProperties.getNoticeModel());
         result.put("socialPlatforms", systemConfigProperties.getSocialPlatforms());
         return R.ok(result);
     }

@@ -38,7 +38,7 @@ public class SystemConfigFileListener implements InitializingBean {
                 String update = systemConfigProperties.update(false);
                 try {
                     if (StrUtil.isNotBlank(update)) {
-                        log.info("配置文件变更: {}", update);
+                        log.debug("配置文件变更: {}", update);
                         // 重新启动定时任务等
                         qlService.startTimerTask();
                         systemConfigProperties.startTimerTask();
