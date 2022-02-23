@@ -4,6 +4,7 @@ import cn.hutool.core.util.StrUtil;
 import cn.yiidii.jdx.config.prop.JDUserConfigProperties;
 import cn.yiidii.jdx.config.prop.JDUserConfigProperties.JDUserConfig;
 import cn.yiidii.jdx.model.R;
+import cn.yiidii.jdx.model.ex.BizException;
 import cn.yiidii.jdx.util.WXPushUtil;
 import com.alibaba.fastjson.JSONObject;
 import java.util.Arrays;
@@ -14,6 +15,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.util.Assert;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -58,17 +60,20 @@ public class ThirdCallbackController {
      */
     @PostMapping("/qlNotify")
     public R<?> qlNotify(@RequestBody JSONObject paramJo) {
-        try {
-            this.handle(paramJo);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        this.handle(paramJo);
         return R.ok();
     }
 
     private void handle(JSONObject paramJo) {
         String text = paramJo.getString("text");
         String desp = paramJo.getString("desp");
+        Assert.isTrue(StrUtil.isNotBlank(text) && StrUtil.isNotBlank(desp), () -> {
+            throw new BizException("参数错误");
+        });
+
+        // 优先使用ql回调时传入的wxAppToken，没传则使用JDX配置的wxAppToken
+        String wxPusherAppToken = paramJo.getString("wxPusherAppToken");
+        wxPusherAppToken = StrUtil.isNotBlank(wxPusherAppToken) ? wxPusherAppToken : jdUserConfigProperties.getAppToken();
         switch (text) {
             case "京东资产变动通知": {
                 List<String> userContentList = Arrays.stream(desp.split("\\n\\n\\n\\n")).collect(Collectors.toList()).stream().filter(s -> StrUtil.isNotBlank(s) && !s.contains("本通知")).collect(Collectors.toList());
@@ -84,7 +89,7 @@ public class ThirdCallbackController {
                     if (Objects.isNull(byPtPin)) {
                         continue;
                     }
-                    WXPushUtil.send(jdUserConfigProperties.getAppToken(), Arrays.asList(byPtPin.getWxPusherUid()), text, v, "1");
+                    WXPushUtil.send(wxPusherAppToken, Arrays.asList(byPtPin.getWxPusherUid()), text, v, "1");
                 }
                 break;
             }
