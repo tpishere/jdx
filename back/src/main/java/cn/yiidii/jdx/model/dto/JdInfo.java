@@ -26,5 +26,6 @@ public class JdInfo {
 
     private String preCookie;
     private String cookie;
+    private String ptPin;
 
 }

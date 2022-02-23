@@ -36,6 +36,7 @@ public class JDUserConfigFileListener implements InitializingBean {
                 String update = jdUserConfigProperties.update(false);
                 if (StrUtil.isNotBlank(update)) {
                     log.debug("JDUser配置文件变更: {}", update);
+                    jdUserConfigProperties.startTimerTask();
                 }
             }
 

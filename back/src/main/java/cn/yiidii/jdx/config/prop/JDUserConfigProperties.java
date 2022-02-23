@@ -3,15 +3,21 @@ package cn.yiidii.jdx.config.prop;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSONUtil;
+import cn.yiidii.jdx.model.ex.BizException;
+import cn.yiidii.jdx.util.JDXUtil;
+import cn.yiidii.jdx.util.ScheduleTaskUtil;
 import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.annotation.JSONField;
 import java.io.File;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import javax.annotation.PostConstruct;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.stereotype.Component;
@@ -29,10 +35,11 @@ public class JDUserConfigProperties implements InitializingBean {
 
     public static final String JD_USER_CONFIG_FILE_PAH = System.getProperty("user.dir") + File.separator + "config" + File.separator + "JDInfoConfig.json";
     private static boolean INIT = false;
-
+    @JSONField(serialize = false, deserialize = false)
+    private final ScheduleTaskUtil scheduleTaskUtil;
 
     private String appToken;
-    private List<JDUserConfig> JDUsers;
+    private List<JDUserConfig> JDUsers = new ArrayList<>();
 
     @PostConstruct
     public void init() {
@@ -74,13 +81,31 @@ public class JDUserConfigProperties implements InitializingBean {
         return this.getJDUsers().stream().filter(e -> e.getPtPin().equals(ptPin)).findFirst().orElse(null);
     }
 
-    public void bindWXPusherUid(String ptPin, String wxPusherUid) {
+    public void bindWXPusherUid(String cookie, String wxPusherUid) {
+        String ptPin = JDXUtil.getPtPinFromCK(cookie);
+        if (StrUtil.isBlank(ptPin)) {
+            throw new BizException("Cookie格式不正确");
+        }
         JDUserConfig jdUserConfig = this.getByPtPin(ptPin);
         if (Objects.nonNull(jdUserConfig)) {
             jdUserConfig.setWxPusherUid(wxPusherUid);
         } else {
             this.getJDUsers().add(new JDUserConfig(ptPin, wxPusherUid));
         }
+    }
 
+    public void startTimerTask() {
+        scheduleTaskUtil.startCron("SYS_timerPersistSystemConfig", () -> {
+            this.timerPersistJDUserConfig();
+        }, "0/30 * * * * ?");
+    }
+
+    private void timerPersistJDUserConfig() {
+        if (!INIT) {
+            return;
+        }
+        Thread.currentThread().setName(String.format(Thread.currentThread().getName(), "SYS_timerPersistJDUserConfig"));
+        String prettyJa = JSONUtil.toJsonPrettyStr(JSONObject.toJSONString(this));
+        FileUtil.writeString(prettyJa, JD_USER_CONFIG_FILE_PAH, StandardCharsets.UTF_8);
     }
 }

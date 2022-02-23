@@ -128,7 +128,7 @@ public class SystemConfigProperties implements InitializingBean {
     }
 
     public void startTimerTask() {
-        scheduleTaskUtil.startCron("QL_timerRefreshToken", () -> {
+        scheduleTaskUtil.startCron("QL_timerPersistSystemConfig", () -> {
             this.timerPersistSystemConfig();
         }, "0/30 * * * * ?");
     }

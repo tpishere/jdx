@@ -9,6 +9,7 @@ import cn.hutool.http.HttpRequest;
 import cn.hutool.http.HttpResponse;
 import cn.yiidii.jdx.model.dto.JdInfo;
 import cn.yiidii.jdx.model.ex.BizException;
+import cn.yiidii.jdx.util.JDXUtil;
 import com.alibaba.fastjson.JSONObject;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -50,6 +51,10 @@ public class JdService {
                 .body(param, ContentType.FORM_URLENCODED.toString())
                 .execute();
         JSONObject responseJo = JSONObject.parseObject(response.body());
+        if (Objects.isNull(responseJo)) {
+            throw new BizException("京东服务器抽风中, 再试一次吧~");
+        }
+        log.debug(StrUtil.format("京东发送验证码, 获取一堆什么参数, 京东响应: {}", responseJo.toJSONString()));
         this.checkErr(responseJo);
         JSONObject data = responseJo.getJSONObject("data");
         String gsalt = data.getString("gsalt");
@@ -78,6 +83,10 @@ public class JdService {
                 .cookie(ck)
                 .execute();
         responseJo = JSONObject.parseObject(response.body());
+        if (Objects.isNull(responseJo)) {
+            throw new BizException("京东服务器抽风中, 再试一次吧~");
+        }
+        log.debug(StrUtil.format("京东发送验证码, 第二步, 京东响应: {}", responseJo.toJSONString()));
         this.checkErr(responseJo);
         timedCache.put(mobile, jdInfo);
         jdInfo.setExpireTime(responseJo.getJSONObject("data").getLong("expire_time"));
@@ -105,7 +114,7 @@ public class JdService {
         String ptPin = data.getString("pt_pin");
         String cookie = StrUtil.format("pt_key={};pt_pin={};", ptKey, ptPin);
         timedCache.remove(mobile);
-        return new JdInfo().builder().cookie(cookie).build();
+        return new JdInfo().builder().cookie(cookie).ptPin(JDXUtil.getPtPinFromCK(cookie)).build();
     }
 
 

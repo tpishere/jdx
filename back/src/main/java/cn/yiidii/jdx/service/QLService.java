@@ -1,6 +1,5 @@
 package cn.yiidii.jdx.service;
 
-import cn.hutool.core.util.ReUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.http.HttpRequest;
 import cn.hutool.http.HttpResponse;
@@ -9,10 +8,10 @@ import cn.yiidii.jdx.config.prop.SystemConfigProperties;
 import cn.yiidii.jdx.config.prop.SystemConfigProperties.QLConfig;
 import cn.yiidii.jdx.model.dto.JdInfo;
 import cn.yiidii.jdx.model.ex.BizException;
+import cn.yiidii.jdx.util.JDXUtil;
 import cn.yiidii.jdx.util.ScheduleTaskUtil;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -39,12 +38,12 @@ public class QLService {
     public final SystemConfigProperties systemConfigProperties;
     private final ScheduleTaskUtil scheduleTaskUtil;
 
-    public void submitCk(String mobile, String code, String displayName, String remark) throws Exception {
+    public JdInfo submitCk(String mobile, String code, String displayName, String remark) throws Exception {
         JdInfo jdInfo = jdService.login(mobile, code);
         String cookie = jdInfo.getCookie();
 
         // 获取存在的env
-        String ptPin = getPtPinFromCK(cookie);
+        String ptPin = JDXUtil.getPtPinFromCK(cookie);
         JSONObject existEnv = this.getExistCK(displayName, StrUtil.format("pt_pin={};", ptPin));
         if (!existEnv.isEmpty()) {
             // 不更新备注
@@ -52,6 +51,7 @@ public class QLService {
         }
 
         this.addEnv(displayName, "JD_COOKIE", cookie, remark);
+        return jdInfo;
     }
 
     public void addEnv(String displayName, String name, String value, String remark) {
@@ -60,7 +60,7 @@ public class QLService {
             throw new BizException(StrUtil.format("青龙节点【{}】不存在", displayName));
         }
         // 获取存在的env
-        String ptPin = getPtPinFromCK(value);
+        String ptPin = JDXUtil.getPtPinFromCK(value);
         JSONObject existEnv = this.getExistCK(displayName, StrUtil.format("pt_pin={};", ptPin));
 
         // 推送青龙
@@ -143,6 +143,7 @@ public class QLService {
                 return jo;
             }).collect(Collectors.toList());
         } catch (Exception e) {
+            log.debug("连接青龙发生异常, e: {}", e);
             throw new BizException("连接青龙发生异常, 请联系系统管理员");
         }
     }
@@ -183,14 +184,6 @@ public class QLService {
         List<QLConfig> qlConfigs = systemConfigProperties.getQls();
         qlConfigs.forEach(ql -> refreshToken(ql));
 
-    }
-
-    private String getPtPinFromCK(String cookie) {
-        cookie = StrUtil.isBlank(cookie) ? "" : ReUtil.replaceAll(cookie, "\\s+", "");
-        return Arrays.stream(cookie.split(";"))
-                .filter(e -> e.contains("pt_pin"))
-                .findFirst().orElse("")
-                .split("=")[1];
     }
 
     /**

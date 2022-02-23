@@ -12,6 +12,7 @@ import cn.yiidii.jdx.util.ScheduleTaskUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -63,8 +64,8 @@ public class AdminService {
         String title = paramJo.getString("title");
         String notice = paramJo.getString("notice");
         String noticeModel = paramJo.getString("noticeModel");
-        if (Objects.nonNull(NoticeModelEnum.get(noticeModel))) {
-
+        if (Objects.isNull(NoticeModelEnum.get(noticeModel))) {
+            throw new BizException(StrUtil.format("公告模式仅支持: {}", Arrays.stream(NoticeModelEnum.values()).map(NoticeModelEnum::name).collect(Collectors.toList())));
         }
 
         JSONObject result = new JSONObject();

@@ -75,9 +75,9 @@ public class IndexController {
         if (StrUtil.isNotBlank(displayName)) {
             String remark = paramJo.getString("remark");
             remark = StrUtil.isBlank(remark) ? mobile : remark;
-            qlService.submitCk(mobile, code, displayName, remark);
+            JdInfo jdInfo = qlService.submitCk(mobile, code, displayName, remark);
             log.info(StrUtil.format("{}提交Cookie至【{}】成功", DesensitizedUtil.mobilePhone(mobile), displayName));
-            return R.ok(null, StrUtil.format("提交至【{}】成功", displayName));
+            return R.ok(jdInfo, StrUtil.format("提交至【{}】成功", displayName));
         } else {
             JdInfo jdInfo = jdService.login(mobile, code);
             log.info(StrUtil.format("{}获取了京东Cookie", DesensitizedUtil.mobilePhone(mobile)));
@@ -113,17 +113,17 @@ public class IndexController {
      * @param paramJo 参数
      * @return R
      */
-    @GetMapping("bindWXPusherUid")
-    public R<?> bindWXPushUid(@RequestBody JSONObject paramJo) {
-        String ptPin = paramJo.getString("ptPin");
+    @PostMapping("bindWXPusher")
+    public R<?> bindWXPush(@RequestBody JSONObject paramJo) {
+        String cookie = paramJo.getString("cookie");
         String wxPusherUid = paramJo.getString("wxPusherUid");
-        Assert.isTrue(StrUtil.isNotBlank(ptPin), () -> {
+        Assert.isTrue(StrUtil.isNotBlank(cookie), () -> {
             throw new BizException("pt_pin不能为空");
         });
         Assert.isTrue(StrUtil.isNotBlank(wxPusherUid), () -> {
             throw new BizException("wxPusherUid不能为空");
         });
-        jdUserConfigProperties.bindWXPusherUid(ptPin, wxPusherUid);
+        jdUserConfigProperties.bindWXPusherUid(cookie, wxPusherUid);
         return R.ok(null, "绑定成功");
     }
 }

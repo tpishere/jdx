@@ -32,16 +32,15 @@ import org.springframework.web.bind.annotation.RestController;
 public class OauthController {
 
     private final OauthService oauthService;
-
+    private final HttpServletResponse response;
     /**
      * 授权
      *
      * @param source   source
-     * @param response response
      * @throws IOException IOException
      */
     @GetMapping("/render/{source}")
-    public void render(@PathVariable String source, HttpServletResponse response) throws IOException {
+    public void render(@PathVariable String source) throws IOException {
         AuthRequest authRequest = oauthService.getAuthRequest(source);
         String authorize = authRequest.authorize(AuthStateUtils.createState());
         response.sendRedirect(authorize);

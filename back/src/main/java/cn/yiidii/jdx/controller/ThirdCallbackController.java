@@ -78,11 +78,12 @@ public class ThirdCallbackController {
         wxPusherAppToken = StrUtil.isNotBlank(wxPusherAppToken) ? wxPusherAppToken : jdUserConfigProperties.getAppToken();
         switch (text) {
             case "京东资产变动通知": {
-                List<String> userContentList = Arrays.stream(desp.split("\\n\\n\\n\\n")).collect(Collectors.toList()).stream().filter(s -> StrUtil.isNotBlank(s) && !s.contains("本通知")).collect(Collectors.toList());
+                List<String> userContentList = Arrays.stream(desp.split("\\n\\n")).collect(Collectors.toList()).stream().filter(s -> StrUtil.isNotBlank(s) && !s.contains("本通知")).collect(Collectors.toList());
                 Map<String, String> userContentMap = userContentList.stream().collect(Collectors.toMap(e -> {
-                    String s = e.split("\\n\\n")[1];
+                    String s = e.split("\\n")[1];
                     return s.replaceAll("账号名称：", "");
                 }, e -> e, (e1, e2) -> e2));
+                log.debug("京东资产变动通知, 根据回调信息汇总的mapping: {}", JSONObject.toJSONString(userContentMap));
 
                 for (Entry<String, String> entry : userContentMap.entrySet()) {
                     String k = entry.getKey();

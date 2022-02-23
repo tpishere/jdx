@@ -1,5 +1,6 @@
 package cn.yiidii.jdx.support;
 
+import cn.yiidii.jdx.config.prop.JDUserConfigProperties;
 import cn.yiidii.jdx.config.prop.SystemConfigProperties;
 import cn.yiidii.jdx.service.QLService;
 import lombok.RequiredArgsConstructor;
@@ -22,10 +23,12 @@ public class ScheduleApplicationRunner implements ApplicationRunner {
 
     private final QLService qlService;
     private final SystemConfigProperties systemConfigProperties;
+    private final JDUserConfigProperties jdUserConfigProperties;
 
     @Override
     public void run(ApplicationArguments args) throws Exception {
         qlService.startTimerTask();
         systemConfigProperties.startTimerTask();
+        jdUserConfigProperties.startTimerTask();
     }
 }
