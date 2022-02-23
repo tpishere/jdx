@@ -24,3 +24,12 @@ export function jdLogin(data) {
     data: data
   });
 }
+
+// bindWXPusher
+export function bindWXPusher(data) {
+  return request({
+    url: "bindWXPusher",
+    method: "post",
+    data: data
+  });
+}
