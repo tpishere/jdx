@@ -58,7 +58,9 @@ socialPlatforms为社交登录的配置，说明如下：
 
 **配置应用相关文档**
 - [Gitee](https://gitee.com/api/v5/oauth_doc#/list-item-3)
+  > `GITEE` 获取自己用户名的方法: 登录 -> 点击右上角头像 -> 个人主页 -> 地址栏的`https://gitee.com/`之后的就是自己的用户名
 - [Github](https://docs.github.com/en/developers/apps/building-oauth-apps/creating-an-oauth-app)
+  > `GITHUB` 获取自己用户名的方法: 登录 -> 点击右上角头像 -> Your profile -> 地址栏的`https://github.com/`之后的就是自己的用户名
 - [Baidu](http://developer.baidu.com/wiki/index.php?title=docs/pcs/guide/app_create)
 
 ## 更新说明
