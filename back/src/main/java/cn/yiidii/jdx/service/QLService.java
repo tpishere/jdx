@@ -73,12 +73,14 @@ public class QLService {
             JSONArray paramJa = new JSONArray();
             paramJa.add(envJo);
             try {
+                log.debug(StrUtil.format("[青龙 - {}] 添加环境变量, 参数: {}", displayName, envJo.toJSONString()));
                 HttpResponse response = HttpRequest.post(qlConfig.getUrl().concat("open/envs"))
                         .bearerAuth(this.getQLToken(displayName))
                         .body(paramJa.toJSONString())
                         .execute();
-                log.info(StrUtil.format("[青龙 - {}] 添加环境变量, 参数: {}, 响应: {}", displayName, envJo.toJSONString(), response.body()));
+                log.debug(StrUtil.format("[青龙 - {}] 添加环境变量, 响应: {}", displayName, response.body()));
             } catch (Exception e) {
+                log.error(StrUtil.format("[青龙 - {}] 添加环境变量发生异常: {}", displayName, e));
                 throw new BizException("连接青龙发生异常, 请联系系统管理员");
             }
         } else {
@@ -90,23 +92,26 @@ public class QLService {
             envJo.put("remarks", remark);
             envJo.put("_id", existEnv.getString("_id"));
             try {
+                log.debug(StrUtil.format("[青龙 - {}] 更新环境变量, 参数: {}, 响应: {}", displayName, envJo.toJSONString()));
                 HttpResponse response = HttpRequest.put(qlConfig.getUrl().concat("open/envs"))
                         .bearerAuth(this.getQLToken(displayName))
                         .body(envJo.toJSONString())
                         .execute();
-                log.info(StrUtil.format("[青龙 - {}] 更新环境变量, 参数: {}, 响应: {}", displayName, envJo.toJSONString(), response.body()));
+                log.debug(StrUtil.format("[青龙 - {}] 更新环境变量, 响应: {}", displayName, response.body()));
 
                 // 启用
                 if (existEnv.getInteger("status") == 1) {
                     JSONArray paramJa = new JSONArray();
                     paramJa.add(existEnv.getString("_id"));
+                    log.debug(StrUtil.format("[青龙 - {}] 启用环境变量, 参数: {}", displayName, paramJa.toJSONString()));
                     response = HttpRequest.put(qlConfig.getUrl().concat("open/envs/enable"))
                             .bearerAuth(this.getQLToken(displayName))
                             .body(paramJa.toJSONString())
                             .execute();
-                    log.info(StrUtil.format("[青龙 - {}] 启用环境变量, 参数: {}, 响应: {}", displayName, paramJa.toJSONString(), response.body()));
+                    log.debug(StrUtil.format("[青龙 - {}] 启用环境变量, 响应: {}", displayName, response.body()));
                 }
             } catch (Exception e) {
+                log.error(StrUtil.format("[青龙 - {}] 更新并启用环境变量发生异常: {}", displayName, e));
                 throw new BizException("连接青龙发生异常, 请联系系统管理员");
             }
         }
@@ -122,7 +127,7 @@ public class QLService {
             HttpResponse response = HttpRequest.get(StrUtil.format("{}open/envs?searchValue={}", qlConfig.getUrl(), searchValue))
                     .bearerAuth(this.getQLToken(displayName))
                     .execute();
-            log.info(StrUtil.format("[青龙 - {}] 搜索环境变量, 参数: {}, 响应: {}", displayName, searchValue, response.body()));
+            log.debug(StrUtil.format("[青龙 - {}] 搜索环境变量, 参数: {}, 响应: {}", displayName, searchValue, response.body()));
             JSONObject respJo = JSONObject.parseObject(response.body());
             JSONArray data = respJo.getJSONArray("data");
 
@@ -196,22 +201,25 @@ public class QLService {
      * @return JSONObject
      */
     private JSONObject getExistCK(String displayName, String cookie) {
+        log.debug(StrUtil.format("[青龙 - {}], 搜索Cookie: {}", displayName, cookie));
+        JSONObject result;
         List<JSONObject> envs = this.searchEnv(displayName, cookie);
         if (envs.size() == 0) {
-            return new JSONObject();
+            result = new JSONObject();
         } else if (envs.size() == 1) {
-            return envs.get(0);
+            result = envs.get(0);
         } else {
             // 通过【pt_pin=xxx;】搜索出来有多个的话, 返回正常状态(status=0)的第一个， 如果没有正常的, 就返回禁用状态(status=1)的第一个
             Map<Integer, List<JSONObject>> statusMap = envs.stream().collect(Collectors.groupingBy(e -> e.getInteger("status")));
             if (statusMap.get(0).size() >= 1) {
-                return statusMap.get(0).get(0);
+                result = statusMap.get(0).get(0);
             } else if (statusMap.get(1).size() >= 1) {
-                return statusMap.get(1).get(0);
+                result = statusMap.get(1).get(0);
             } else {
-                return new JSONObject();
+                result = new JSONObject();
             }
-
         }
+        log.debug(StrUtil.format("[青龙 - {}], 搜索Cookie: {}, 最终返回结果: {}", displayName, cookie, result.toJSONString()));
+        return result;
     }
 }

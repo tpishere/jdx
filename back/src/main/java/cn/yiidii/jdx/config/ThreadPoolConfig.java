@@ -1,5 +1,6 @@
 package cn.yiidii.jdx.config;
 
+import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson.JSONObject;
 import java.util.concurrent.ThreadPoolExecutor;
 import lombok.extern.slf4j.Slf4j;
@@ -77,7 +78,7 @@ public class ThreadPoolConfig {
     @Bean("scheduledExecutor")
     public ThreadPoolTaskExecutor scheduledExecutor() {
         ThreadPoolTaskExecutor executor = constructor(SCHEDULED_EXECUTOR_NAME_PREFIX);
-        log.info(String.format("初始化定时任务线程池: %s", JSONObject.toJSONString(executor)));
+        log.debug(StrUtil.format("初始化定时任务线程池: {}", JSONObject.toJSONString(executor)));
         return executor;
     }
 
@@ -87,7 +88,7 @@ public class ThreadPoolConfig {
     @Bean("asyncExecutor")
     public ThreadPoolTaskExecutor asyncExecutor() {
         ThreadPoolTaskExecutor executor = constructor(ASYNC_EXECUTOR_NAME_PREFIX);
-        log.info(String.format("初始化通用线程池: %s", JSONObject.toJSONString(executor)));
+        log.info(StrUtil.format("初始化通用线程池: {}", JSONObject.toJSONString(executor)));
         return executor;
     }
 

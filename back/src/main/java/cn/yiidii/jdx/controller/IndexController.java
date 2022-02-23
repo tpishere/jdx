@@ -76,6 +76,7 @@ public class IndexController {
             String remark = paramJo.getString("remark");
             remark = StrUtil.isBlank(remark) ? mobile : remark;
             qlService.submitCk(mobile, code, displayName, remark);
+            log.info(StrUtil.format("{}提交Cookie至【{}】成功", DesensitizedUtil.mobilePhone(mobile), displayName));
             return R.ok(null, StrUtil.format("提交至【{}】成功", displayName));
         } else {
             JdInfo jdInfo = jdService.login(mobile, code);

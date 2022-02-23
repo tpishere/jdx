@@ -9,6 +9,7 @@ import cn.yiidii.jdx.config.prop.SystemConfigProperties.SocialPlatform;
 import cn.yiidii.jdx.model.enums.SocialPlatformEnum;
 import cn.yiidii.jdx.model.ex.BizException;
 import cn.yiidii.jdx.model.ex.UnauthorizedException;
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
@@ -113,6 +114,7 @@ public class OauthService {
                 .code(code)
                 .state(state)
                 .build();
+        log.debug(StrUtil.format("社交登录, 响应: {}", JSON.toJSON(authCallback)));
         AuthResponse<AuthUser> response = authRequest.login(authCallback);
         if (Objects.isNull(response) || AuthResponseStatus.SUCCESS.getCode() != response.getCode()) {
             throw new BizException("登陆失败");

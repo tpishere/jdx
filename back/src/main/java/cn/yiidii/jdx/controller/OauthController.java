@@ -1,5 +1,6 @@
 package cn.yiidii.jdx.controller;
 
+import cn.hutool.core.util.StrUtil;
 import cn.yiidii.jdx.model.R;
 import cn.yiidii.jdx.service.OauthService;
 import com.alibaba.fastjson.JSONObject;
@@ -54,7 +55,9 @@ public class OauthController {
      */
     @PostMapping("/login")
     public R<?> login(@RequestBody JSONObject paramJo) throws Exception {
-        return R.ok(oauthService.login(paramJo));
+        JSONObject result = oauthService.login(paramJo);
+        log.debug(StrUtil.format("社交登录结果: {}", result.toJSONString()));
+        return R.ok(result);
     }
 
 }

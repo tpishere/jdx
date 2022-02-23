@@ -25,9 +25,7 @@ public class ScheduleApplicationRunner implements ApplicationRunner {
 
     @Override
     public void run(ApplicationArguments args) throws Exception {
-        log.info(">>>>>>>>>>>>>>>>>>>> 启动系统定时任务开始");
         qlService.startTimerTask();
         systemConfigProperties.startTimerTask();
-        log.info(">>>>>>>>>>>>>>>>>>>> 定时任系统务启动完成");
     }
 }

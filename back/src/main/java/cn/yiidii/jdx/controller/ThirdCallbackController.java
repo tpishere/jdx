@@ -49,6 +49,7 @@ public class ThirdCallbackController {
         if (StrUtil.equals("app_subscribe", appSubscribe)) {
 
         }
+        log.debug(StrUtil.format("wxPusher订阅回调: {}", paramJo.toJSONString()));
         return R.ok();
     }
 
@@ -60,6 +61,7 @@ public class ThirdCallbackController {
      */
     @PostMapping("/qlNotify")
     public R<?> qlNotify(@RequestBody JSONObject paramJo) {
+        log.debug(StrUtil.format("青龙任务执行后通知, 参数: {}", paramJo.toJSONString()));
         this.handle(paramJo);
         return R.ok();
     }

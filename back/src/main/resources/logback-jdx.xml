@@ -113,4 +113,6 @@
         <appender-ref ref="error_file"/>
     </root>
 
+    <!--屏蔽包日志-->
+    <logger name="org.jboss" level="OFF"></logger>
 </configuration>

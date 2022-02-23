@@ -59,7 +59,7 @@ public class GlobalExceptionHandler {
     public R<?> unauthorizedException(UnauthorizedException ex) {
         log.debug("UnauthorizedException: {}", ex);
         log.warn("UnauthorizedException: {}", ex.getMessage());
-        return R.failed(ExceptionCode.UNAUTHORIZED.getCode(), ExceptionCode.UNAUTHORIZED.getMsg(), ex.getMessage());
+        return R.failed(ExceptionCode.UNAUTHORIZED.getCode(), ex.getMessage(), ex.getMessage());
     }
 
     @ExceptionHandler(NoHandlerFoundException.class)

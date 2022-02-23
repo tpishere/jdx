@@ -35,7 +35,9 @@ public class SystemConfigPropertiesPostProcessor implements BeanPostProcessor {
         List<String> duplicateDisplayName = qlConfigs.stream().collect(Collectors.groupingBy(QLConfig::getDisplayName))
                 .entrySet().stream().filter(e -> e.getValue().size() > 1).map(e -> e.getKey()).collect(Collectors.toList());
         if (CollUtil.isNotEmpty(duplicateDisplayName)) {
-            throw new RuntimeException(StrUtil.format("青龙配置异常, 以下名称出现重复: {}", CollUtil.join(duplicateDisplayName, ",")));
+            String msg = StrUtil.format("青龙配置异常, 以下名称出现重复: {}", CollUtil.join(duplicateDisplayName, ","));
+            log.debug(msg);
+            throw new RuntimeException(msg);
         }
     }
 
@@ -44,7 +46,9 @@ public class SystemConfigPropertiesPostProcessor implements BeanPostProcessor {
         List<String> duplicateDisplayName = socialPlatforms.stream().collect(Collectors.groupingBy(SocialPlatform::getSource))
                 .entrySet().stream().filter(e -> e.getValue().size() > 1).map(e -> e.getKey()).collect(Collectors.toList());
         if (CollUtil.isNotEmpty(duplicateDisplayName)) {
-            throw new RuntimeException(StrUtil.format("社交登录信息配置异常, 以下平台配置重复: {}", CollUtil.join(duplicateDisplayName, ",")));
+            String msg = StrUtil.format("社交登录信息配置异常, 以下平台配置重复: {}", CollUtil.join(duplicateDisplayName, ","));
+            log.debug(msg);
+            throw new RuntimeException(msg);
         }
     }
 }

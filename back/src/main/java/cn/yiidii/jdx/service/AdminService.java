@@ -43,6 +43,7 @@ public class AdminService {
         }
         List<QLConfig> qls = systemConfigProperties.getQls();
         qls.add(qlConfig);
+        log.debug(StrUtil.format("[admin] 添加ql: {}", JSON.toJSONString(qls)));
         return qls;
     }
 
@@ -54,6 +55,7 @@ public class AdminService {
         List<QLConfig> qls = systemConfigProperties.getQls();
         qls = qls.stream().filter(ql -> !StrUtil.equalsIgnoreCase(displayName, ql.getDisplayName())).collect(Collectors.toList());
         systemConfigProperties.setQls(qls);
+        log.debug(StrUtil.format("[admin] 删除ql: {}", displayName));
         return qls;
     }
 
@@ -81,6 +83,7 @@ public class AdminService {
             systemConfigProperties.setNoticeModel(noticeModel);
             result.put("noticeModel", noticeModel);
         }
+        log.debug(StrUtil.format("[admin] 更新网站配置: {}", result.toJSONString()));
         return result;
     }
 
@@ -97,6 +100,7 @@ public class AdminService {
         } else {
             socialPlatforms.add(socialPlatformParam);
         }
+        log.debug(StrUtil.format("[admin] 更新社交登录配置: {}", JSON.toJSONString(socialPlatforms)));
         return socialPlatforms;
     }
 
@@ -113,6 +117,7 @@ public class AdminService {
                 .filter(s -> StrUtil.equals(source, s.getSource()))
                 .collect(Collectors.toList());
         systemConfigProperties.setSocialPlatforms(socialPlatforms);
+        log.debug(StrUtil.format("[admin] 删除社交登录配置: {}", source));
         return socialPlatforms;
     }
 
