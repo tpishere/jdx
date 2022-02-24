@@ -12,7 +12,7 @@
 ## 安装说明
 
 本项目已打包成`docker`镜像，拉取配置即可使用
-> - docker安装方法不再赘述
+> docker安装方法不再赘述
 
 ### 1. 拉取并运行docker
 
@@ -48,8 +48,9 @@ socialPlatforms为社交登录的配置，说明如下：
 - `clientId`：社交平台的配置应用的`clientId`
 - `clientSecret`：社交平台的配置应用的`clientSecret`
 - `redirectUri`：`http://xxxx:xxx/oauth/callback/<source>`
-  > - 这里的`source`必须为：`GITEE` 或 `GITHUB` （例：`http://xxxx:xxx/oauth/callback/GITEE`）
-  > - `xxxx:xxx` 为`JDX`的域名或者`ip:port`
+  > 1. 这里的`source`必须为：`GITEE` 或 `GITHUB` （例：`http://xxxx:xxx/oauth/callback/GITEE`）
+  > 
+  > 2. `xxxx:xxx` 为`JDX`的域名或者`ip:port`
 - `admin`：管理员的名称，多个以英文半角逗号`,`分割
 
 注意：
@@ -62,6 +63,17 @@ socialPlatforms为社交登录的配置，说明如下：
 - [Github](https://docs.github.com/en/developers/apps/building-oauth-apps/creating-an-oauth-app)
   > `GITHUB` 获取自己用户名的方法: 登录 -> 点击右上角头像 -> Your profile -> 地址栏的`https://github.com/`之后的就是自己的用户名
 - [Baidu](http://developer.baidu.com/wiki/index.php?title=docs/pcs/guide/app_create)
+
+## 使用说明
+1. QL配置只能删除和新增，不能编辑操作
+2. 所有涉及编辑和删除的操作，左滑即可（就像微信删除最近联系人一样...）
+
+其他问题可以空Q&A
+
+## Q&A
+**Q: 点击登录出现: `{"error":"Application does not exist"}`**
+
+A: 在对应的平台正确配置正确的应用，特别是应用回调地址，详情看上方**配置应用相关文档**
 
 ## 更新说明
 待更新..
