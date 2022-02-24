@@ -43,7 +43,7 @@ public class SystemConfigProperties implements InitializingBean {
 
     private String title;
     private String notice;
-    private String noticeModel;
+    private String noticeModel = "TOP";
     private List<SocialPlatform> socialPlatforms;
     private List<QLConfig> qls;
 

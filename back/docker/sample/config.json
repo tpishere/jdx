@@ -1,6 +1,7 @@
 {
   "title": "JDX",
   "notice": "这是一条测试公告~",
+  "noticeModel": "TOP",
   "socialPlatforms": [
     {
       "source": "GITEE",
