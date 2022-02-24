@@ -57,10 +57,6 @@ export default {
             this.title = resp.data.title;
             this.notice = resp.data.notice;
             this.noticeModel = resp.data.noticeModel;
-            this.qls = resp.data.qls;
-            if (this.qls.length > 0) {
-              this.form.displayName = this.qls[0];
-            }
           })
           .catch(err => {
             console.log(err);

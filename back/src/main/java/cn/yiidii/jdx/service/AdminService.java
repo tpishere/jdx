@@ -38,6 +38,11 @@ public class AdminService {
     }
 
     public List<QLConfig> addQLConfig(QLConfig qlConfig) {
+        String url = qlConfig.getUrl();
+        url = url.startsWith("http") ? url : "http://".concat(url);
+        url = url.endsWith("/") ? url : url.concat("/");
+        qlConfig.setUrl(url);
+
         QLConfig exist = systemConfigProperties.getQLConfigByDisplayName(qlConfig.getDisplayName());
         if (Objects.nonNull(exist)) {
             throw new BizException(StrUtil.format("已存在该名称[{}]配置", qlConfig.getDisplayName()));

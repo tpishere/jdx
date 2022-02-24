@@ -67,3 +67,18 @@ export function delSocialConfig(source) {
     method: "delete"
   });
 }
+
+export function getWxPusher() {
+  return request({
+    url: "admin/wxPusher",
+    method: "get",
+  });
+}
+
+export function updateWxPusher(data) {
+  return request({
+    url: "admin/wxPusher",
+    method: "put",
+    data: data
+  });
+}

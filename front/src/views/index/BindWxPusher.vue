@@ -3,7 +3,7 @@
     <div>
       <van-field
           v-model="cookie"
-          rows="3"
+          rows="1"
           autosize
           label="Cookie"
           type="textarea"
@@ -26,8 +26,14 @@
       <div style="text-align: center">
         <van-image
             width="200"
+            height="200"
+            fit="contain"
             :src="wxPusherQrUrl"
-        />
+        >
+          <template v-slot:loading>
+            <van-loading type="spinner" size="20" />
+          </template>
+        </van-image>
       </div>
       <div style="padding: 16px 0 0 32px">
         1. 扫码关注WxPusher <br/>

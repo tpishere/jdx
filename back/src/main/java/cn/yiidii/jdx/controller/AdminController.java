@@ -1,5 +1,6 @@
 package cn.yiidii.jdx.controller;
 
+import cn.yiidii.jdx.config.prop.JDUserConfigProperties;
 import cn.yiidii.jdx.config.prop.SystemConfigProperties;
 import cn.yiidii.jdx.config.prop.SystemConfigProperties.QLConfig;
 import cn.yiidii.jdx.config.prop.SystemConfigProperties.SocialPlatform;
@@ -34,6 +35,7 @@ public class AdminController {
 
     private final AdminService adminService;
     private final SystemConfigProperties systemConfigProperties;
+    private final JDUserConfigProperties jdUserConfigProperties;
 
     @GetMapping("ql")
     public R<?> qlConfig() {
@@ -79,5 +81,19 @@ public class AdminController {
     public R<?> delSocialConfig(@RequestParam @NotNull(message = "source不能为空") String source) {
         List<SocialPlatform> socialPlatforms = adminService.delSocialConfig(source);
         return R.ok(socialPlatforms, "删除成功");
+    }
+
+    @GetMapping("wxPusher")
+    public R<?> getWxPusher() {
+        JSONObject jo = new JSONObject();
+        jo.put("appToken", jdUserConfigProperties.getAppToken());
+        jo.put("wxPusherQrUrl", jdUserConfigProperties.getWxPusherQrUrl());
+        return R.ok(jo);
+    }
+    @PutMapping("wxPusher")
+    public R<?> updateWxPusher(@RequestBody JSONObject paramJo) {
+        jdUserConfigProperties.setAppToken(paramJo.getString("appToken"));
+        jdUserConfigProperties.setWxPusherQrUrl(paramJo.getString("wxPusherQrUrl"));
+        return R.ok(paramJo, "修改成功");
     }
 }

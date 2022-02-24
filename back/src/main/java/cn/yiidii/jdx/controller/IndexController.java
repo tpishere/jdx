@@ -107,14 +107,7 @@ public class IndexController {
                 }).distinct().collect(Collectors.toList());
         jo.put("sources", sources);
         jo.put("qls", systemConfigProperties.getQls().stream().map(QLConfig::getDisplayName).distinct().collect(Collectors.toList()));
-        String wxPusherQrUrl = jdUserConfigProperties.getWxPusherQrUrl();
-        jo.put("wxPusherQrUrl", "");
-        try {
-            HttpResponse response = HttpRequest.get(wxPusherQrUrl).execute();
-            jo.put("wxPusherQrUrl", response.header(Header.LOCATION));
-        } catch (Exception e) {
-            //ignore
-        }
+        jo.put("wxPusherQrUrl", jdUserConfigProperties.getWxPusherQrUrl());
         return R.ok(jo);
     }
 
