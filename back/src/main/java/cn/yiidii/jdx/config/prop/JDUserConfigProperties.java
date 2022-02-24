@@ -39,6 +39,7 @@ public class JDUserConfigProperties implements InitializingBean {
     private final ScheduleTaskUtil scheduleTaskUtil;
 
     private String appToken;
+    private String wxPusherQrUrl;
     private List<JDUserConfig> JDUsers = new ArrayList<>();
 
     @PostConstruct

@@ -3,6 +3,9 @@ package cn.yiidii.jdx.controller;
 import cn.hutool.core.util.DesensitizedUtil;
 import cn.hutool.core.util.PhoneUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.http.Header;
+import cn.hutool.http.HttpRequest;
+import cn.hutool.http.HttpResponse;
 import cn.yiidii.jdx.config.prop.JDUserConfigProperties;
 import cn.yiidii.jdx.config.prop.SystemConfigProperties;
 import cn.yiidii.jdx.config.prop.SystemConfigProperties.QLConfig;
@@ -104,6 +107,14 @@ public class IndexController {
                 }).distinct().collect(Collectors.toList());
         jo.put("sources", sources);
         jo.put("qls", systemConfigProperties.getQls().stream().map(QLConfig::getDisplayName).distinct().collect(Collectors.toList()));
+        String wxPusherQrUrl = jdUserConfigProperties.getWxPusherQrUrl();
+        jo.put("wxPusherQrUrl", "");
+        try {
+            HttpResponse response = HttpRequest.get(wxPusherQrUrl).execute();
+            jo.put("wxPusherQrUrl", response.header(Header.LOCATION));
+        } catch (Exception e) {
+            //ignore
+        }
         return R.ok(jo);
     }
 
