@@ -1,25 +1,5 @@
 <template>
   <div>
-    <van-notice-bar
-      v-if="notice && noticeModel == 'TOP'"
-      left-icon="volume-o"
-      :text="notice"
-      mode="closeable"
-    />
-
-    <div>
-      <!-- title -->
-      <div
-        v-if="title"
-        style="text-align: center; margin: 40px 0 20px 0; font-size: 32px"
-      >
-        {{ title }}
-      </div>
-
-      <!-- sub title -->
-      <div v-if="notice && noticeModel == 'HTML'" v-html="notice"></div>
-    </div>
-
     <div style="margin: 32px 0 16px 16px">
       <van-radio-group v-model="model" direction="horizontal">
         <van-radio name="ck">获取CK</van-radio>
@@ -103,8 +83,6 @@
       />
     </van-popup>
 
-    <!-- 绑定wxPusher uid start -->
-
   </div>
 </template>
 <script>
@@ -113,9 +91,7 @@ import { baseInfo, jdSmsCode, jdLogin } from "@/api";
 export default {
   data() {
     return {
-      title: "",
-      notice: "",
-      noticeModel: "",
+
       model: "ck",
       showQLPicker: false,
       qls: [],
