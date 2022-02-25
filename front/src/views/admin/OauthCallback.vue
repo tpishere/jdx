@@ -31,8 +31,7 @@ export default {
     ) {
       this.$store
         .dispatch("user/socialLogin", this.authCallback)
-        .then(resp => {
-          console.log(resp);
+        .then(() => {
           this.$router.push("/admin");
         })
         .catch(err => {

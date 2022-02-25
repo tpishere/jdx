@@ -3,16 +3,16 @@
     <div style="background-color: #f6f6f6; padding-bottom: 20px;">
       <van-tabs v-model="active">
         <van-tab title="青龙管理">
-          <QLManage/>
+          <QLManage />
         </van-tab>
         <van-tab title="WxPush管理">
-          <WxPushManage/>
+          <WxPushManage />
         </van-tab>
         <van-tab title="系统设置">
-          <SystemConfig/>
+          <SystemConfig />
         </van-tab>
         <van-tab title="关于">
-          <About/>
+          <About />
         </van-tab>
       </van-tabs>
     </div>
@@ -27,7 +27,7 @@ import WxPushManage from "@/views/admin/tab/WxPushManage";
 
 export default {
   name: "Home",
-  components: {QLManage, SystemConfig, About, WxPushManage},
+  components: { QLManage, SystemConfig, About, WxPushManage },
   data() {
     return {
       active: 0

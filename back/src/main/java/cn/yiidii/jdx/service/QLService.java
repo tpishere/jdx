@@ -38,23 +38,18 @@ public class QLService {
     public final SystemConfigProperties systemConfigProperties;
     private final ScheduleTaskUtil scheduleTaskUtil;
 
-    public JdInfo submitCk(String mobile, String code, String displayName, String remark) throws Exception {
-        JdInfo jdInfo = jdService.login(mobile, code);
-        String cookie = jdInfo.getCookie();
-
-        // 获取存在的env
+    public void submitCk(String displayName, String cookie, String remark) throws Exception {
+        // 获取存在的env, env存在就不更新备注
         String ptPin = JDXUtil.getPtPinFromCK(cookie);
         JSONObject existEnv = this.getExistCK(displayName, StrUtil.format("pt_pin={};", ptPin));
         if (!existEnv.isEmpty()) {
-            // 不更新备注
             remark = existEnv.getString("remarks");
         }
-
-        this.addEnv(displayName, "JD_COOKIE", cookie, remark);
-        return jdInfo;
+        // 保存并启用
+        this.saveAndEnableEnv(displayName, "JD_COOKIE", cookie, remark);
     }
 
-    public void addEnv(String displayName, String name, String value, String remark) {
+    public void saveAndEnableEnv(String displayName, String name, String value, String remark) {
         QLConfig qlConfig = systemConfigProperties.getQLConfigByDisplayName(displayName);
         if (Objects.isNull(qlConfig)) {
             throw new BizException(StrUtil.format("青龙节点【{}】不存在", displayName));

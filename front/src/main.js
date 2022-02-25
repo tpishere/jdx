@@ -33,6 +33,8 @@ import {
   Radio,
   RadioGroup,
   Loading,
+  Step,
+  Steps,
   Toast,
   Dialog
 } from "vant";
@@ -67,6 +69,8 @@ Vue.use(CountDown);
 Vue.use(Radio);
 Vue.use(RadioGroup);
 Vue.use(Loading);
+Vue.use(Step);
+Vue.use(Steps);
 
 Vue.use(VueClipboard);
 

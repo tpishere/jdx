@@ -3,17 +3,17 @@
     <div style="margin: 16px 0">
       <van-swipe-cell>
         <van-cell-group inset>
-          <van-cell title="appToken" :value="appToken"/>
-          <van-cell title="二维码连接" :value="wxPusherQrUrl"/>
+          <van-cell title="appToken" :value="appToken" />
+          <van-cell title="二维码连接" :value="wxPusherQrUrl" />
         </van-cell-group>
 
         <template #right>
           <van-button
-              square
-              type="info"
-              class="slide-button"
-              text="编辑"
-              @click="wxPusherConfigVisible = true"
+            square
+            type="info"
+            class="slide-button"
+            text="编辑"
+            @click="wxPusherConfigVisible = true"
           />
         </template>
       </van-swipe-cell>
@@ -22,10 +22,10 @@
         <div style="text-align: center">
           <div style="margin: 4px 0; ">二维码预览</div>
           <van-image
-              width="200"
-              height="200"
-              fit="contain"
-              :src="wxPusherQrUrl"
+            width="200"
+            height="200"
+            fit="contain"
+            :src="wxPusherQrUrl"
           >
             <template v-slot:loading>
               <van-loading type="spinner" size="20" />
@@ -36,17 +36,21 @@
 
       <van-action-sheet v-model="wxPusherConfigVisible" title="编辑WxPusher">
         <van-form>
-          <van-field v-model="appToken" label="appToken" placeholder="appToken"/>
           <van-field
-              v-model="wxPusherQrUrl"
-              label="二维码地址"
-              autosize
-              type="textarea"
-              placeholder="二维码地址"
+            v-model="appToken"
+            label="appToken"
+            placeholder="appToken"
+          />
+          <van-field
+            v-model="wxPusherQrUrl"
+            label="二维码地址"
+            autosize
+            type="textarea"
+            placeholder="二维码地址"
           />
           <div style="margin: 16px;">
             <van-button round block type="info" @click="updateWxPusher()"
-            >提交
+              >提交
             </van-button>
           </div>
         </van-form>
@@ -56,7 +60,7 @@
 </template>
 
 <script>
-import {getWxPusher, updateWxPusher} from "@/api/admin";
+import { getWxPusher, updateWxPusher } from "@/api/admin";
 
 export default {
   name: "WxPushManage",
@@ -65,28 +69,29 @@ export default {
       appToken: "",
       wxPusherQrUrl: "",
       wxPusherConfigVisible: false
-    }
+    };
   },
   mounted() {
-    this.render()
+    this.render();
   },
   methods: {
-    render: function () {
+    render: function() {
       getWxPusher().then(resp => {
-        this.appToken = resp.data.appToken
-        this.wxPusherQrUrl = resp.data.wxPusherQrUrl
-      })
+        this.appToken = resp.data.appToken;
+        this.wxPusherQrUrl = resp.data.wxPusherQrUrl;
+      });
     },
-    updateWxPusher: function () {
-      let param = {"appToken": this.appToken, "wxPusherQrUrl": this.wxPusherQrUrl}
+    updateWxPusher: function() {
+      let param = {
+        appToken: this.appToken,
+        wxPusherQrUrl: this.wxPusherQrUrl
+      };
       updateWxPusher(param).then(() => {
-        this.wxPusherConfigVisible = false
-      })
+        this.wxPusherConfigVisible = false;
+      });
     }
   }
-}
+};
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>

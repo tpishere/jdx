@@ -3,9 +3,6 @@ package cn.yiidii.jdx.controller;
 import cn.hutool.core.util.DesensitizedUtil;
 import cn.hutool.core.util.PhoneUtil;
 import cn.hutool.core.util.StrUtil;
-import cn.hutool.http.Header;
-import cn.hutool.http.HttpRequest;
-import cn.hutool.http.HttpResponse;
 import cn.yiidii.jdx.config.prop.JDUserConfigProperties;
 import cn.yiidii.jdx.config.prop.SystemConfigProperties;
 import cn.yiidii.jdx.config.prop.SystemConfigProperties.QLConfig;
@@ -15,6 +12,7 @@ import cn.yiidii.jdx.model.enums.SocialPlatformEnum;
 import cn.yiidii.jdx.model.ex.BizException;
 import cn.yiidii.jdx.service.JdService;
 import cn.yiidii.jdx.service.QLService;
+import cn.yiidii.jdx.util.JDXUtil;
 import com.alibaba.fastjson.JSONObject;
 import java.util.List;
 import java.util.Objects;
@@ -73,19 +71,26 @@ public class IndexController {
             throw new BizException("验证码不能为空");
         });
 
-        // displayName不为空说明是ql模式
+        JdInfo jdInfo = jdService.login(mobile, code);
+        log.info(StrUtil.format("{}获取了京东Cookie", DesensitizedUtil.mobilePhone(mobile)));
+        return R.ok(jdInfo, "获取cookie成功");
+    }
+
+    @PostMapping("/ql/submitCk")
+    public R<JdInfo> submitCk(@RequestBody JSONObject paramJo) throws Exception {
+        String cookie = paramJo.getString("cookie");
         String displayName = paramJo.getString("displayName");
-        if (StrUtil.isNotBlank(displayName)) {
-            String remark = paramJo.getString("remark");
-            remark = StrUtil.isBlank(remark) ? mobile : remark;
-            JdInfo jdInfo = qlService.submitCk(mobile, code, displayName, remark);
-            log.info(StrUtil.format("{}提交Cookie至【{}】成功", DesensitizedUtil.mobilePhone(mobile), displayName));
-            return R.ok(jdInfo, StrUtil.format("提交至【{}】成功", displayName));
-        } else {
-            JdInfo jdInfo = jdService.login(mobile, code);
-            log.info(StrUtil.format("{}获取了京东Cookie", DesensitizedUtil.mobilePhone(mobile)));
-            return R.ok(jdInfo, "获取cookie成功");
-        }
+        String remark = paramJo.getString("remark");
+        Assert.isTrue(StrUtil.isNotBlank(cookie), () -> {
+            throw new BizException("Cookie不能为空");
+        });
+        Assert.isTrue(StrUtil.isNotBlank(displayName), () -> {
+            throw new BizException("请选择QL节点");
+        });
+
+        qlService.submitCk(displayName, cookie, remark);
+        log.info(StrUtil.format("ptPin:{}提交Cookie至【{}】成功", JDXUtil.getPtPinFromCK(cookie), displayName));
+        return R.ok(null, StrUtil.format("提交至【{}】成功", displayName));
     }
 
     @GetMapping("info")

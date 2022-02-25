@@ -20,7 +20,6 @@ const actions = {
       login(authCallback)
         .then(res => {
           let data = res.data;
-          console.log(data);
           commit("RESET_USERINFO", data);
           localStorage.setItem("token", data.token);
           localStorage.setItem("thirdToken", data.thirdToken);

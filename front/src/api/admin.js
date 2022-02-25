@@ -71,7 +71,7 @@ export function delSocialConfig(source) {
 export function getWxPusher() {
   return request({
     url: "admin/wxPusher",
-    method: "get",
+    method: "get"
   });
 }
 

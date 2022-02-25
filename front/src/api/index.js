@@ -25,6 +25,15 @@ export function jdLogin(data) {
   });
 }
 
+// submitCk
+export function submitCk(data) {
+  return request({
+    url: "ql/submitCk",
+    method: "post",
+    data: data
+  });
+}
+
 // bindWXPusher
 export function bindWXPusher(data) {
   return request({

@@ -2,6 +2,7 @@ package cn.yiidii.jdx.util;
 
 import cn.hutool.core.util.ReUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.yiidii.jdx.model.ex.BizException;
 import java.util.Arrays;
 import lombok.experimental.UtilityClass;
 
@@ -16,9 +17,13 @@ public class JDXUtil {
 
     public String getPtPinFromCK(String cookie) {
         cookie = StrUtil.isBlank(cookie) ? "" : ReUtil.replaceAll(cookie, "\\s+", "");
-        return Arrays.stream(cookie.split(";"))
-                .filter(e -> e.contains("pt_pin"))
-                .findFirst().orElse("")
-                .split("=")[1];
+        try {
+            return Arrays.stream(cookie.split(";"))
+                    .filter(e -> e.contains("pt_pin"))
+                    .findFirst().orElse("")
+                    .split("=")[1];
+        } catch (Exception e) {
+            throw new BizException("Cookie格式不正确");
+        }
     }
 }

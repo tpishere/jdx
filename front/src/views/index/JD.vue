@@ -1,12 +1,5 @@
 <template>
   <div>
-    <div style="margin: 32px 0 16px 16px">
-      <van-radio-group v-model="model" direction="horizontal">
-        <van-radio name="ck">获取CK</van-radio>
-        <van-radio name="ql">提交青龙</van-radio>
-      </van-radio-group>
-    </div>
-
     <van-field
       v-model="form.mobile"
       name="mobile"
@@ -32,27 +25,9 @@
         </van-button>
       </template>
     </van-field>
-    <van-field
-      v-if="model == 'ql'"
-      readonly
-      clickable
-      label="选择节点"
-      :value="form.displayName"
-      placeholder="选择青龙节点"
-      @click="showQLPicker = true"
-    ></van-field>
-
-    <van-field
-      v-if="model == 'ql'"
-      v-model="form.remark"
-      name="remark"
-      label="备注"
-      placeholder="备注"
-    />
 
     <div style="margin: 16px; ">
       <van-button
-        v-if="model == 'ck'"
         round
         block
         :disabled="!form.code"
@@ -61,28 +36,7 @@
       >
         获取CK
       </van-button>
-      <van-button
-        v-if="model == 'ql'"
-        round
-        block
-        :disabled="!form.code"
-        type="warning"
-        @click="login"
-      >
-        提交青龙
-      </van-button>
     </div>
-
-    <!-- 选择QL节点的picker -->
-    <van-popup v-model="showQLPicker" round position="bottom">
-      <van-picker
-        show-toolbar
-        :columns="qls"
-        @cancel="showQLPicker = false"
-        @confirm="conformQL"
-      />
-    </van-popup>
-
   </div>
 </template>
 <script>
@@ -91,16 +45,10 @@ import { baseInfo, jdSmsCode, jdLogin } from "@/api";
 export default {
   data() {
     return {
-
-      model: "ck",
-      showQLPicker: false,
-      qls: [],
       expireTime: 0,
       form: {
         mobile: "",
-        code: "",
-        displayName: "",
-        remark: ""
+        code: ""
       }
     };
   },
@@ -142,21 +90,25 @@ export default {
           localStorage.setItem("ptPin", response.data.ptPin);
           // 弹框
           _this.$dialog
-              .alert({
-                title: "提示",
-                message: response.data.cookie,
-                confirmButtonText: "点击复制"
-              })
-              .then(() => {
-                _this
-                    .$copyText(response.data.cookie)
-                    .then(() => {
-                      _this.$toast.success("复制成功");
-                    })
-                    .catch(() => {
-                      _this.$toast.fail("复制失败，请手动复制");
-                    });
-              });
+            .alert({
+              title: "提示",
+              message: response.data.cookie,
+              confirmButtonText: "点击复制"
+            })
+            .then(() => {
+              _this
+                .$copyText(response.data.cookie)
+                .then(() => {
+                  _this.$toast.success("复制成功");
+                  setTimeout(() => {
+                    _this.$toast.success("如有需要，请选择并提交您的Cookie")
+                    _this.$emit("change-tab", "submitQL")
+                  }, 1000)
+                })
+                .catch(() => {
+                  _this.$toast.fail("复制失败，请手动复制");
+                });
+            });
           if (_this.model == "ck") {
             // ignore
           }
@@ -168,10 +120,6 @@ export default {
         .catch(function(error) {
           console.error(error);
         });
-    },
-    conformQL(qlId) {
-      this.form.displayName = qlId;
-      this.showQLPicker = false;
     }
   }
 };
