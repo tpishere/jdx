@@ -92,6 +92,13 @@ export default {
             "修改：提交的备注为空，且ql有该ck，不修改备注",
             "优化：启动后对配置文件检查"
           ]
+        },
+        {
+          date: "2022-2-226",
+          logs: [
+            "新增：内置检测所有QL Cookie",
+            "新增：检测Cookie结果通知管理员 wxPusher UID"
+          ]
         }
       ]
     };

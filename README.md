@@ -21,7 +21,7 @@ docker run -d \
     -v <config dir>:/jdx/config \
     -p <port>:80 \
     --restart=always \
-    --name jdx registry.cn-hangzhou.aliyuncs.com/yiidii-hub/jdx:v0.1.2
+    --name jdx registry.cn-hangzhou.aliyuncs.com/yiidii-hub/jdx:v0.1.6
 ```
 > 这里命令自行替换卷和端口映射
 > 
@@ -31,7 +31,7 @@ docker run -d \
 >   -v  /data/jdx/config:/jdx/config \
 >   -p 5702:80 \
 >   --restart=always \
->   --name jdx registry.cn-hangzhou.aliyuncs.com/yiidii-hub/jdx:v0.1.2
+>   --name jdx registry.cn-hangzhou.aliyuncs.com/yiidii-hub/jdx:v0.1.6
 > ```
 > 
 注意：
@@ -76,4 +76,8 @@ socialPlatforms为社交登录的配置，说明如下：
 A: 在对应的平台正确配置正确的应用，特别是应用回调地址，详情看上方**配置应用相关文档**
 
 ## 更新说明
-待更新..
+1. 停止并删除容器
+```shell
+docker stop jmx && docker rm jmx
+```
+2. 根据最新版本号跑一个新的容器即可
