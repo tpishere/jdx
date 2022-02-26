@@ -5,6 +5,7 @@ import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import cn.yiidii.jdx.model.ex.BizException;
+import cn.yiidii.jdx.support.ITask;
 import cn.yiidii.jdx.util.JDXUtil;
 import cn.yiidii.jdx.util.ScheduleTaskUtil;
 import com.alibaba.fastjson.JSONObject;
@@ -31,7 +32,7 @@ import org.springframework.stereotype.Component;
 @Data
 @Slf4j
 @Component
-public class JDUserConfigProperties implements InitializingBean {
+public class JDUserConfigProperties implements InitializingBean, ITask {
 
     public static final String JD_USER_CONFIG_FILE_PAH = System.getProperty("user.dir") + File.separator + "config" + File.separator + "JDInfoConfig.json";
     private static boolean INIT = false;
@@ -39,6 +40,7 @@ public class JDUserConfigProperties implements InitializingBean {
     private final ScheduleTaskUtil scheduleTaskUtil;
 
     private String appToken;
+    private String adminUid;
     private String wxPusherQrUrl;
     private List<JDUserConfig> JDUsers = new ArrayList<>();
 
@@ -95,10 +97,9 @@ public class JDUserConfigProperties implements InitializingBean {
         }
     }
 
+    @Override
     public void startTimerTask() {
-        scheduleTaskUtil.startCron("SYS_timerPersistSystemConfig", () -> {
-            this.timerPersistJDUserConfig();
-        }, "0/30 * * * * ?");
+        scheduleTaskUtil.startCron("SYS_timerPersistSystemConfig", () -> this.timerPersistJDUserConfig(), "0/30 * * * * ?");
     }
 
     private void timerPersistJDUserConfig() {

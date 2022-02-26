@@ -1,17 +1,21 @@
 package cn.yiidii.jdx.controller;
 
+import cn.hutool.core.util.StrUtil;
 import cn.yiidii.jdx.config.prop.JDUserConfigProperties;
 import cn.yiidii.jdx.config.prop.SystemConfigProperties;
 import cn.yiidii.jdx.config.prop.SystemConfigProperties.QLConfig;
 import cn.yiidii.jdx.config.prop.SystemConfigProperties.SocialPlatform;
 import cn.yiidii.jdx.model.R;
+import cn.yiidii.jdx.model.ex.BizException;
 import cn.yiidii.jdx.service.AdminService;
+import cn.yiidii.jdx.service.JDTaskService;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import java.util.List;
 import javax.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.quartz.CronExpression;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -36,6 +40,7 @@ public class AdminController {
     private final AdminService adminService;
     private final SystemConfigProperties systemConfigProperties;
     private final JDUserConfigProperties jdUserConfigProperties;
+    private final JDTaskService jdTaskService;
 
     @GetMapping("ql")
     public R<?> qlConfig() {
@@ -61,6 +66,7 @@ public class AdminController {
         result.put("title", systemConfigProperties.getTitle());
         result.put("notice", systemConfigProperties.getNotice());
         result.put("noticeModel", systemConfigProperties.getNoticeModel());
+        result.put("checkCookieCron", systemConfigProperties.getCheckCookieCron());
         result.put("socialPlatforms", systemConfigProperties.getSocialPlatforms());
         return R.ok(result);
     }
@@ -90,10 +96,30 @@ public class AdminController {
         jo.put("wxPusherQrUrl", jdUserConfigProperties.getWxPusherQrUrl());
         return R.ok(jo);
     }
+
     @PutMapping("wxPusher")
     public R<?> updateWxPusher(@RequestBody JSONObject paramJo) {
         jdUserConfigProperties.setAppToken(paramJo.getString("appToken"));
         jdUserConfigProperties.setWxPusherQrUrl(paramJo.getString("wxPusherQrUrl"));
         return R.ok(paramJo, "修改成功");
+    }
+
+    @PostMapping("checkCookie")
+    public R<?> checkCookie() {
+        List<JSONObject> result = jdTaskService.timerCheckCookie();
+        return R.ok(result, "执行成功");
+    }
+
+    @PutMapping("updateCheckCookieCron")
+    public R<?> updateCheckCookieCron(@RequestBody JSONObject paramJo) {
+        String cron = paramJo.getString("cron");
+        if (StrUtil.isBlank(cron)) {
+            throw new BizException("cron表达式不能为空");
+        }
+        if (!CronExpression.isValidExpression(cron)) {
+            throw new BizException("cron表达式不正确");
+        }
+        systemConfigProperties.setCheckCookieCron(cron);
+        return R.ok(null, "修改成功");
     }
 }

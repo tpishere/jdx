@@ -101,9 +101,9 @@ export default {
                 .then(() => {
                   _this.$toast.success("复制成功");
                   setTimeout(() => {
-                    _this.$toast.success("如有需要，请选择并提交您的Cookie")
-                    _this.$emit("change-tab", "submitQL")
-                  }, 1000)
+                    _this.$toast.success("如有需要，请选择并提交您的Cookie");
+                    _this.$emit("change-tab", "submitQL");
+                  }, 1000);
                 })
                 .catch(() => {
                   _this.$toast.fail("复制失败，请手动复制");

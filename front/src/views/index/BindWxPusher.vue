@@ -69,8 +69,7 @@ export default {
     bindWxPusher: function() {
       let param = { cookie: this.cookie, wxPusherUid: this.wxPusherUid };
       bindWXPusher(param)
-        .then(() => {
-        })
+        .then(() => {})
         .catch(err => {
           console.error(err);
         });

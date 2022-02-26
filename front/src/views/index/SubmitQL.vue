@@ -6,7 +6,7 @@
       placeholder="pt_key=xxx;pt_pin=xxx;"
       type="textarea"
       autosize
-      size="1"
+      rows="1"
     />
     <van-field
       readonly
@@ -88,10 +88,9 @@ export default {
       submitCk(this.form).then(() => {
         let _this = this;
         setTimeout(() => {
-          _this.$toast.success("如有需要，请绑定您的WxPusher Uid")
-          _this.$emit("change-tab", "bindWxPusher")
-        }, 1000)
-
+          _this.$toast.success("如有需要，请绑定您的WxPusher Uid");
+          _this.$emit("change-tab", "bindWxPusher");
+        }, 1000);
       });
     }
   }

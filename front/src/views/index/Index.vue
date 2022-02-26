@@ -45,7 +45,7 @@ export default {
   components: { JD, SubmitQL, BindWxPusher },
   data() {
     return {
-      active:"jd",
+      active: "jd",
       title: "",
       notice: "",
       noticeModel: ""
@@ -66,8 +66,8 @@ export default {
           console.log(err);
         });
     },
-    changeActive: function (tabName){
-      this.active = tabName
+    changeActive: function(tabName) {
+      this.active = tabName;
     }
   }
 };

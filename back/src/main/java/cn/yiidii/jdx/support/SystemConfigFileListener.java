@@ -3,12 +3,13 @@ package cn.yiidii.jdx.support;
 import cn.hutool.core.io.watch.SimpleWatcher;
 import cn.hutool.core.io.watch.WatchMonitor;
 import cn.hutool.core.io.watch.watchers.DelayWatcher;
-import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import cn.yiidii.jdx.config.prop.SystemConfigProperties;
+import cn.yiidii.jdx.service.JDTaskService;
 import cn.yiidii.jdx.service.QLService;
 import java.nio.file.Path;
 import java.nio.file.WatchEvent;
+import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.InitializingBean;
@@ -28,6 +29,7 @@ public class SystemConfigFileListener implements InitializingBean {
 
     private final SystemConfigProperties systemConfigProperties;
     private final QLService qlService;
+    private final JDTaskService jdTaskService;
 
     @Override
     public void afterPropertiesSet() throws Exception {
@@ -35,13 +37,13 @@ public class SystemConfigFileListener implements InitializingBean {
         SimpleWatcher simpleWatcher = new SimpleWatcher() {
             @Override
             public void onModify(WatchEvent<?> event, Path currentPath) {
-                String update = systemConfigProperties.update(false);
+                SystemConfigProperties update = systemConfigProperties.update(false);
                 try {
-                    if (StrUtil.isNotBlank(update)) {
+                    if (Objects.nonNull(update)) {
                         log.debug("配置文件变更: {}", update);
                         // 重新启动定时任务等
                         qlService.startTimerTask();
-                        systemConfigProperties.startTimerTask();
+                        jdTaskService.startTimerTask();
                     }
                 } catch (Exception e) {
                     // ignore

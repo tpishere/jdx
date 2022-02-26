@@ -82,3 +82,18 @@ export function updateWxPusher(data) {
     data: data
   });
 }
+
+export function checkCookie() {
+  return request({
+    url: "admin/checkCookie",
+    method: "post"
+  });
+}
+
+export function updateCheckCookieCron(data) {
+  return request({
+    url: "admin/updateCheckCookieCron",
+    method: "put",
+    data: data
+  });
+}

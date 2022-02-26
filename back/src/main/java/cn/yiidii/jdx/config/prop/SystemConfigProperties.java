@@ -5,6 +5,7 @@ import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import cn.yiidii.jdx.model.enums.SocialPlatformEnum;
+import cn.yiidii.jdx.support.ITask;
 import cn.yiidii.jdx.util.ScheduleTaskUtil;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.annotation.JSONField;
@@ -33,7 +34,7 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class SystemConfigProperties implements InitializingBean {
+public class SystemConfigProperties implements InitializingBean, ITask {
 
     public static final String SYSTEM_CONFIG_FILE_PAH = System.getProperty("user.dir") + File.separator + "config" + File.separator + "config.json";
     private static boolean INIT = false;
@@ -44,6 +45,7 @@ public class SystemConfigProperties implements InitializingBean {
     private String title;
     private String notice;
     private String noticeModel = "TOP";
+    private String checkCookieCron = "0 0 12 * * ?";
     private List<SocialPlatform> socialPlatforms;
     private List<QLConfig> qls;
 
@@ -59,12 +61,12 @@ public class SystemConfigProperties implements InitializingBean {
         update(true);
     }
 
-    public String update(boolean throwException) {
+    public SystemConfigProperties update(boolean throwException) {
         try {
             String configStr = FileUtil.readUtf8String(SYSTEM_CONFIG_FILE_PAH);
             JSONObject configJo = JSONObject.parseObject(configStr);
             BeanUtil.copyProperties(configJo, this);
-            return configJo.toJSONString();
+            return this;
         } catch (Exception e) {
             if (throwException) {
                 throw new IllegalArgumentException(StrUtil.format("{}不存在", SYSTEM_CONFIG_FILE_PAH));
@@ -127,10 +129,9 @@ public class SystemConfigProperties implements InitializingBean {
                 .findFirst().orElse(null);
     }
 
+    @Override
     public void startTimerTask() {
-        scheduleTaskUtil.startCron("QL_timerPersistSystemConfig", () -> {
-            this.timerPersistSystemConfig();
-        }, "0/30 * * * * ?");
+        scheduleTaskUtil.startCron("QL_timerPersistSystemConfig", () -> this.timerPersistSystemConfig(), "0/30 * * * * ?");
     }
 
     private void timerPersistSystemConfig() {

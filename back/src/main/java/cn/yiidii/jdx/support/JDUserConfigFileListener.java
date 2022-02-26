@@ -33,11 +33,7 @@ public class JDUserConfigFileListener implements InitializingBean {
         SimpleWatcher simpleWatcher = new SimpleWatcher() {
             @Override
             public void onModify(WatchEvent<?> event, Path currentPath) {
-                String update = jdUserConfigProperties.update(false);
-                if (StrUtil.isNotBlank(update)) {
-                    log.debug("JDUser配置文件变更: {}", update);
-                    jdUserConfigProperties.startTimerTask();
-                }
+                jdUserConfigProperties.update(false);
             }
 
             @Override

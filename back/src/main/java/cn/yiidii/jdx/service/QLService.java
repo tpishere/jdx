@@ -6,8 +6,8 @@ import cn.hutool.http.HttpResponse;
 import cn.hutool.http.HttpStatus;
 import cn.yiidii.jdx.config.prop.SystemConfigProperties;
 import cn.yiidii.jdx.config.prop.SystemConfigProperties.QLConfig;
-import cn.yiidii.jdx.model.dto.JdInfo;
 import cn.yiidii.jdx.model.ex.BizException;
+import cn.yiidii.jdx.support.ITask;
 import cn.yiidii.jdx.util.JDXUtil;
 import cn.yiidii.jdx.util.ScheduleTaskUtil;
 import com.alibaba.fastjson.JSONArray;
@@ -30,7 +30,7 @@ import org.springframework.stereotype.Service;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class QLService {
+public class QLService implements ITask {
 
     private final static Map<String, String> QL_TOKEN_CACHE = new ConcurrentHashMap<>(16);
 
@@ -138,7 +138,7 @@ public class QLService {
                 return jo;
             }).collect(Collectors.toList());
         } catch (Exception e) {
-            log.debug("连接青龙发生异常, e: {}", e);
+            log.debug(StrUtil.format("连接青龙发生异常, e: {}", e));
             throw new BizException("连接青龙发生异常, 请联系系统管理员");
         }
     }
@@ -169,16 +169,14 @@ public class QLService {
         return null;
     }
 
+    @Override
     public void startTimerTask() {
-        scheduleTaskUtil.startCron("QL_timerRefreshToken", () -> {
-            this.timerRefreshToken();
-        }, "0 0/1 * * * ?");
+        scheduleTaskUtil.startCron("QL_timerRefreshToken", () -> this.timerRefreshToken(), "0 0/1 * * * ?");
     }
 
     private void timerRefreshToken() {
         List<QLConfig> qlConfigs = systemConfigProperties.getQls();
-        qlConfigs.forEach(ql -> refreshToken(ql));
-
+        qlConfigs.forEach(this::refreshToken);
     }
 
     /**
