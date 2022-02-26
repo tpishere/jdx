@@ -93,6 +93,7 @@ public class AdminController {
     public R<?> getWxPusher() {
         JSONObject jo = new JSONObject();
         jo.put("appToken", jdUserConfigProperties.getAppToken());
+        jo.put("adminUid", jdUserConfigProperties.getAdminUid());
         jo.put("wxPusherQrUrl", jdUserConfigProperties.getWxPusherQrUrl());
         return R.ok(jo);
     }
@@ -101,6 +102,7 @@ public class AdminController {
     public R<?> updateWxPusher(@RequestBody JSONObject paramJo) {
         jdUserConfigProperties.setAppToken(paramJo.getString("appToken"));
         jdUserConfigProperties.setWxPusherQrUrl(paramJo.getString("wxPusherQrUrl"));
+        jdUserConfigProperties.setAdminUid(paramJo.getString("adminUid"));
         return R.ok(paramJo, "修改成功");
     }
 

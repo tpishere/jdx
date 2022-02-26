@@ -35,6 +35,7 @@ import {
   Loading,
   Step,
   Steps,
+  List,
   Toast,
   Dialog
 } from "vant";
@@ -71,6 +72,7 @@ Vue.use(RadioGroup);
 Vue.use(Loading);
 Vue.use(Step);
 Vue.use(Steps);
+Vue.use(List );
 Vue.use(Dialog);
 
 Vue.use(VueClipboard);

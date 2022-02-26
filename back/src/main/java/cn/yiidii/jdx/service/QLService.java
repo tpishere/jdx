@@ -1,5 +1,6 @@
 package cn.yiidii.jdx.service;
 
+import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.http.HttpRequest;
 import cn.hutool.http.HttpResponse;
@@ -10,6 +11,7 @@ import cn.yiidii.jdx.model.ex.BizException;
 import cn.yiidii.jdx.support.ITask;
 import cn.yiidii.jdx.util.JDXUtil;
 import cn.yiidii.jdx.util.ScheduleTaskUtil;
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import java.util.List;
@@ -20,6 +22,7 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 /**
  * QLService
@@ -137,6 +140,27 @@ public class QLService implements ITask {
                 jo.put("remarks", tmp.getString("remarks"));
                 return jo;
             }).collect(Collectors.toList());
+        } catch (Exception e) {
+            log.debug(StrUtil.format("连接青龙发生异常, e: {}", e));
+            throw new BizException("连接青龙发生异常, 请联系系统管理员");
+        }
+    }
+
+    public void disableEnv(String displayName, List<String> ids) {
+        if (CollUtil.isEmpty(ids)) {
+            return;
+        }
+        QLConfig qlConfig = systemConfigProperties.getQLConfigByDisplayName(displayName);
+        if (Objects.isNull(qlConfig)) {
+            throw new BizException(StrUtil.format("青龙节点【{}】不存在", displayName));
+        }
+        try {
+            log.debug(StrUtil.format("[青龙 - {}] 禁用环境变量, 参数: {}", displayName, JSON.toJSONString(ids)));
+            HttpResponse response = HttpRequest.put(qlConfig.getUrl().concat("open/envs/disable"))
+                    .bearerAuth(this.getQLToken(displayName))
+                    .body(JSON.toJSONString(ids))
+                    .execute();
+            log.debug(StrUtil.format("[青龙 - {}] 禁用环境变量, 响应: {}", displayName, response.body()));
         } catch (Exception e) {
             log.debug(StrUtil.format("连接青龙发生异常, e: {}", e));
             throw new BizException("连接青龙发生异常, 请联系系统管理员");

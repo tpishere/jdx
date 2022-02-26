@@ -42,7 +42,7 @@ public class JDUserConfigProperties implements InitializingBean, ITask {
     private String appToken;
     private String adminUid;
     private String wxPusherQrUrl;
-    private List<JDUserConfig> JDUsers = new ArrayList<>();
+    private List<JDUserConfig> jdUsers = new ArrayList<>();
 
     @PostConstruct
     public void init() {
@@ -81,7 +81,7 @@ public class JDUserConfigProperties implements InitializingBean, ITask {
 
 
     public JDUserConfig getByPtPin(String ptPin) {
-        return this.getJDUsers().stream().filter(e -> e.getPtPin().equals(ptPin)).findFirst().orElse(null);
+        return this.getJdUsers().stream().filter(e -> e.getPtPin().equals(ptPin)).findFirst().orElse(null);
     }
 
     public void bindWXPusherUid(String cookie, String wxPusherUid) {
@@ -93,7 +93,7 @@ public class JDUserConfigProperties implements InitializingBean, ITask {
         if (Objects.nonNull(jdUserConfig)) {
             jdUserConfig.setWxPusherUid(wxPusherUid);
         } else {
-            this.getJDUsers().add(new JDUserConfig(ptPin, wxPusherUid));
+            this.getJdUsers().add(new JDUserConfig(ptPin, wxPusherUid));
         }
     }
 

@@ -22,6 +22,7 @@ import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 
@@ -31,6 +32,7 @@ import org.springframework.stereotype.Service;
  * @author ed w
  * @since 1.0
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class JDTaskService implements ITask {
@@ -52,7 +54,9 @@ public class JDTaskService implements ITask {
             List<CompletableFuture<CheckCookieResult>> completableFutures = envs.stream().map(env -> CompletableFuture.supplyAsync(() -> {
                 String value = env.getString("value");
                 Thread.currentThread().setName(String.format(Thread.currentThread().getName(), JDXUtil.getPtPinFromCK(value)));
-                return CheckJDCKUtil.checkCookie(value);
+                CheckCookieResult checkCookieResult = CheckJDCKUtil.checkCookie(value);
+                checkCookieResult.set_id(env.getString("_id"));
+                return checkCookieResult;
             }, asyncExecutor)).collect(Collectors.toList());
             // 等待所有任务执行完成
             CompletableFuture<Void> allFutures = CompletableFuture.allOf(completableFutures.toArray(new CompletableFuture[completableFutures.size()]));
@@ -73,14 +77,33 @@ public class JDTaskService implements ITask {
                             StrUtil.format("{}, {}", r.getPtPin(), r.getRemark()),
                             "1");
                 }).map(CheckCookieResult::getPtPin).collect(Collectors.toList());
+                List<String> ids = checkCookieResults.stream().filter(CheckCookieResult::isExpired).map(CheckCookieResult::get_id).collect(Collectors.toList());
+                try {
+                    qlService.disableEnv(qlConfig.getDisplayName(), ids);
+                } catch (Exception e) {
+                    log.error("定时检查cookie时, 禁用环境变量发生异常, displayName: {}", qlConfig.getDisplayName());
+                }
                 if (CollUtil.isNotEmpty(expiredPtPins)) {
                     JSONObject jo = new JSONObject();
                     jo.put("displayName", qlConfig.getDisplayName());
                     jo.put("expiredPtPins", expiredPtPins);
+                    result.add(jo);
                 }
             } catch (Exception e) {
                 throw new BizException("检查Cookie任务异常");
             }
+
+        }
+
+        String adminUid = jdUserConfigProperties.getAdminUid();
+        if (CollUtil.isNotEmpty(result) && StrUtil.isNotBlank(adminUid)) {
+            String adminContent = result.stream().map(jo -> StrUtil.format("🐉节点：{}\r\n{}\r\n\r\n已自动禁用", jo.getString("displayName"), CollUtil.join(jo.getJSONArray("expiredPtPins"), "\r\n")))
+                    .collect(Collectors.joining("\r\n"));
+            WXPushUtil.send(jdUserConfigProperties.getAppToken(),
+                    Arrays.asList(adminUid),
+                    "Cookie失效通知",
+                    adminContent,
+                    "1");
         }
         return result;
     }
