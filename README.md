@@ -78,6 +78,6 @@ A: 在对应的平台正确配置正确的应用，特别是应用回调地址�
 ## 更新说明
 1. 停止并删除容器
 ```shell
-docker stop jmx && docker rm jmx
+docker stop jdx && docker rm jdx
 ```
 2. 根据最新版本号跑一个新的容器即可

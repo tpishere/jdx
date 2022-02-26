@@ -94,7 +94,7 @@ export default {
           ]
         },
         {
-          date: "2022-2-226",
+          date: "2022-02-26",
           logs: [
             "新增：内置检测所有QL Cookie",
             "新增：检测Cookie结果通知管理员 wxPusher UID"
