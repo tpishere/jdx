@@ -4,6 +4,7 @@
       <van-swipe-cell>
         <van-cell-group inset>
           <van-cell title="appToken" :value="appToken" />
+          <van-cell title="管理员UID" :value="adminUid" />
           <van-cell title="二维码连接" :value="wxPusherQrUrl" />
         </van-cell-group>
 
@@ -42,6 +43,13 @@
             placeholder="appToken"
           />
           <van-field
+            v-model="adminUid"
+            label="管理员UID"
+            autosize
+            type="textarea"
+            placeholder="管理员UID"
+          />
+          <van-field
             v-model="wxPusherQrUrl"
             label="二维码地址"
             autosize
@@ -68,6 +76,7 @@ export default {
     return {
       appToken: "",
       wxPusherQrUrl: "",
+      adminUid: "",
       wxPusherConfigVisible: false
     };
   },
@@ -79,12 +88,14 @@ export default {
       getWxPusher().then(resp => {
         this.appToken = resp.data.appToken;
         this.wxPusherQrUrl = resp.data.wxPusherQrUrl;
+        this.adminUid = resp.data.adminUid;
       });
     },
     updateWxPusher: function() {
       let param = {
         appToken: this.appToken,
-        wxPusherQrUrl: this.wxPusherQrUrl
+        wxPusherQrUrl: this.wxPusherQrUrl,
+        adminUid: this.adminUid
       };
       updateWxPusher(param).then(() => {
         this.wxPusherConfigVisible = false;
