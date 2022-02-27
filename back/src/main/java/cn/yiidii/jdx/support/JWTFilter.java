@@ -35,7 +35,7 @@ public class JWTFilter extends OncePerRequestFilter {
 
     private static final List<String> IGNORED_URL =
             Arrays.asList("/jd/**",
-                    "/ql/",
+                    "/ql/**",
                     "/info",
                     "/bindWXPusher",
                     "/oauth/**",

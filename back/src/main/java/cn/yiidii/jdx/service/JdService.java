@@ -2,6 +2,7 @@ package cn.yiidii.jdx.service;
 
 import cn.hutool.cache.CacheUtil;
 import cn.hutool.cache.impl.TimedCache;
+import cn.hutool.core.net.URLEncoder;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.crypto.digest.DigestUtil;
 import cn.hutool.http.ContentType;
@@ -11,6 +12,7 @@ import cn.yiidii.jdx.model.dto.JdInfo;
 import cn.yiidii.jdx.model.ex.BizException;
 import cn.yiidii.jdx.util.JDXUtil;
 import com.alibaba.fastjson.JSONObject;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -112,7 +114,7 @@ public class JdService {
         JSONObject data = responseJo.getJSONObject("data");
         String ptKey = data.getString("pt_key");
         String ptPin = data.getString("pt_pin");
-        String cookie = StrUtil.format("pt_key={};pt_pin={};", ptKey, ptPin);
+        String cookie = StrUtil.format("pt_key={};pt_pin={};", ptKey, URLEncoder.DEFAULT.encode(ptPin, StandardCharsets.UTF_8));
         timedCache.remove(mobile);
         return new JdInfo().builder().cookie(cookie).ptPin(JDXUtil.getPtPinFromCK(cookie)).build();
     }
