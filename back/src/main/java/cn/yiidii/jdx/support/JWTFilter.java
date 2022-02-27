@@ -33,7 +33,15 @@ import org.springframework.web.filter.OncePerRequestFilter;
 @ConditionalOnClass(Filter.class)
 public class JWTFilter extends OncePerRequestFilter {
 
-    private static final List<String> IGNORED_URL = Arrays.asList("/jd/**", "/info", "/oauth/**", "/third/**");
+    private static final List<String> IGNORED_URL =
+            Arrays.asList("/jd/**",
+                    "/ql/",
+                    "/info",
+                    "/bindWXPusher",
+                    "/oauth/**",
+                    "/third/**"
+            );
+
     private static final AntPathMatcher PATH_MATCHER = new AntPathMatcher();
 
     private final ObjectMapper objectMapper;
