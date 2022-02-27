@@ -99,6 +99,13 @@ export default {
             "新增：内置检测所有QL Cookie",
             "新增：检测Cookie结果通知管理员 wxPusher UID"
           ]
+        },
+        {
+          date: "2022-02-27",
+          logs: [
+            "修复：提交QL，token失效",
+            "修复：pt_pin中文问题导致更新不上的问题",
+          ]
         }
       ]
     };
