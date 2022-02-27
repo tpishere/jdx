@@ -3,8 +3,8 @@
     <!-- 声明 -->
     <div>
       <van-divider
-        :style="{ color: '#1989fa', borderColor: '#1989fa', padding: '0 16px' }"
-        >声明
+          :style="{ color: '#1989fa', borderColor: '#1989fa', padding: '0 16px' }"
+      >声明
       </van-divider>
       <ul>
         <li><p>如果您使用了本项目，代表您默认同意该声明。</p></li>
@@ -19,14 +19,14 @@
     <!-- 更新日志 -->
     <div class="block">
       <van-divider
-        :style="{ color: '#1989fa', borderColor: '#1989fa', padding: '0 16px' }"
-        >更新日志
+          :style="{ color: '#1989fa', borderColor: '#1989fa', padding: '0 16px' }"
+      >更新日志
       </van-divider>
       <div>
         <div
-          v-for="log in updateLog"
-          :key="log.date"
-          style="margin: 16px 0 0 16px"
+            v-for="log in updateLog"
+            :key="log.date"
+            style="margin: 16px 0 0 16px"
         >
           <div style="color: #909399">{{ log.date }}</div>
           <div v-for="l in log.logs" :key="l">
@@ -38,16 +38,16 @@
 
     <div class="block">
       <van-divider
-        :style="{ color: '#1989fa', borderColor: '#1989fa', padding: '0 16px' }"
-        >打赏开发者
+          :style="{ color: '#1989fa', borderColor: '#1989fa', padding: '0 16px' }"
+      >打赏开发者
       </van-divider>
       <div style="text-align: center; margin: 16px 0;color: #909399">
         <div>打赏开发者喝杯咖啡吧~</div>
         <van-button
-          style="margin-top: 16px"
-          color="linear-gradient(to right, #ff6034, #ee0a24)"
-          @click="show = true"
-          size="small"
+            style="margin-top: 16px"
+            color="linear-gradient(to right, #ff6034, #ee0a24)"
+            @click="show = true"
+            size="small"
         >
           打赏开发者
         </van-button>
@@ -105,6 +105,7 @@ export default {
           logs: [
             "修复：提交QL，token失效",
             "修复：pt_pin中文问题导致更新不上的问题",
+            "调整：移除社交登录，改为用户名密码登录"
           ]
         }
       ]

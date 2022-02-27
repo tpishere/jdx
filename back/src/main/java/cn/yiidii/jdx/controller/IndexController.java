@@ -8,14 +8,11 @@ import cn.yiidii.jdx.config.prop.SystemConfigProperties;
 import cn.yiidii.jdx.config.prop.SystemConfigProperties.QLConfig;
 import cn.yiidii.jdx.model.R;
 import cn.yiidii.jdx.model.dto.JdInfo;
-import cn.yiidii.jdx.model.enums.SocialPlatformEnum;
 import cn.yiidii.jdx.model.ex.BizException;
 import cn.yiidii.jdx.service.JdService;
 import cn.yiidii.jdx.service.QLService;
 import cn.yiidii.jdx.util.JDXUtil;
 import com.alibaba.fastjson.JSONObject;
-import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 import javax.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
@@ -99,18 +96,6 @@ public class IndexController {
         jo.put("title", systemConfigProperties.getTitle());
         jo.put("notice", systemConfigProperties.getNotice());
         jo.put("noticeModel", systemConfigProperties.getNoticeModel());
-        List<JSONObject> sources = systemConfigProperties.getSocialPlatforms().stream()
-                .filter(e -> Objects.nonNull(SocialPlatformEnum.get(e.getSource())))
-                .map(e -> {
-                    SocialPlatformEnum socialPlatformEnum = SocialPlatformEnum.get(e.getSource());
-                    JSONObject jsonObject = new JSONObject();
-                    jsonObject.put("displayName", socialPlatformEnum.getDisplayName());
-                    jsonObject.put("source", socialPlatformEnum.name());
-                    jsonObject.put("url", socialPlatformEnum.getUrl());
-                    jsonObject.put("iconBase64", socialPlatformEnum.getIconBase64());
-                    return jsonObject;
-                }).distinct().collect(Collectors.toList());
-        jo.put("sources", sources);
         jo.put("qls", systemConfigProperties.getQls().stream().map(QLConfig::getDisplayName).distinct().collect(Collectors.toList()));
         jo.put("wxPusherQrUrl", jdUserConfigProperties.getWxPusherQrUrl());
         return R.ok(jo);

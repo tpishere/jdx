@@ -2,15 +2,6 @@
   "title": "JDX",
   "notice": "这是一条测试公告~",
   "noticeModel": "TOP",
-  "socialPlatforms": [
-    {
-      "source": "GITEE",
-      "clientId": "xxxxxx",
-      "clientSecret": "xxxxxx",
-      "redirectUri": "http://xxxx:xxx/oauth/callback/GITEE",
-      "admin": "admin1,admin2"
-    }
-  ],
   "qls": [
     {
       "displayName": "青龙 1号",

@@ -39,6 +39,7 @@ public class JWTFilter extends OncePerRequestFilter {
                     "/info",
                     "/bindWXPusher",
                     "/oauth/**",
+                    "/auth/**",
                     "/third/**"
             );
 

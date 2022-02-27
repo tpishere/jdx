@@ -1,52 +1,65 @@
 <template>
   <div>
     <div
-      v-if="title"
-      style="text-align: center; margin: 40px 0 20px 0; font-size: 32px"
+        v-if="title"
+        style="text-align: center; margin: 40px 0 80px 0; font-size: 32px"
     >
-      {{ title }}
+      {{ title }} 后台管理
     </div>
-    <van-divider>请选择一种登录方式</van-divider>
-    <van-grid>
-      <van-grid-item
-        v-for="s in sources"
-        :key="s.source"
-        :text="s.displayName"
-        :url="'/api/oauth/render/' + s.source"
-      >
-        <van-image :src="'data:image/svg+xml;base64, ' + s.iconBase64" />
-      </van-grid-item>
-    </van-grid>
+
+    <div>
+      <van-cell-group>
+        <van-field
+            v-model="username"
+            label="用户名"
+            placeholder="请输入用户名"
+        />
+        <van-field v-model="password" label="密码" placeholder="请输入密码"/>
+      </van-cell-group>
+      <div style="padding: 20px">
+        <van-button type="primary" block round @click="login()">登录</van-button>
+      </div>
+    </div>
   </div>
 </template>
 
 <script>
-import { baseInfo } from "@/api";
+import {baseInfo} from "@/api";
+import {login} from "@/api/admin";
 
 export default {
   name: "Login",
   data() {
     return {
       title: "",
-      sources: [{ displayName: "", source: "", url: "", iconBase64: "" }]
+      username: "",
+      password: ""
     };
   },
   mounted() {
     this.renderBase();
     if (localStorage.getItem("token")) {
-      this.$router.push("/admin");
+      setTimeout(() => {
+        this.$router.push("/admin")
+      }, 500)
     }
   },
   methods: {
-    renderBase: function() {
+    renderBase: function () {
       baseInfo()
-        .then(resp => {
-          this.title = resp.data.title;
-          this.sources = resp.data.sources;
-        })
-        .catch(err => {
-          console.log(err);
-        });
+          .then(resp => {
+            this.title = resp.data.title;
+          })
+          .catch(err => {
+            console.log(err);
+          });
+    },
+    login: function () {
+      let form = {username: this.username, password: this.password}
+      login(form).then(resp => {
+        localStorage.setItem("token", resp.data.token)
+        this.$router.push("/admin")
+      })
     }
   }
 };

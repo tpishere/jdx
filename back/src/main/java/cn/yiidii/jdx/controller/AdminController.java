@@ -4,7 +4,6 @@ import cn.hutool.core.util.StrUtil;
 import cn.yiidii.jdx.config.prop.JDUserConfigProperties;
 import cn.yiidii.jdx.config.prop.SystemConfigProperties;
 import cn.yiidii.jdx.config.prop.SystemConfigProperties.QLConfig;
-import cn.yiidii.jdx.config.prop.SystemConfigProperties.SocialPlatform;
 import cn.yiidii.jdx.model.R;
 import cn.yiidii.jdx.model.ex.BizException;
 import cn.yiidii.jdx.service.AdminService;
@@ -65,9 +64,10 @@ public class AdminController {
         JSONObject result = new JSONObject();
         result.put("title", systemConfigProperties.getTitle());
         result.put("notice", systemConfigProperties.getNotice());
+        result.put("username", systemConfigProperties.getUsername());
+        result.put("password", systemConfigProperties.getPassword());
         result.put("noticeModel", systemConfigProperties.getNoticeModel());
         result.put("checkCookieCron", systemConfigProperties.getCheckCookieCron());
-        result.put("socialPlatforms", systemConfigProperties.getSocialPlatforms());
         return R.ok(result);
     }
 
@@ -75,18 +75,6 @@ public class AdminController {
     public R<?> updateWebsiteConfig(@RequestBody JSONObject paramJo) {
         JSONObject websiteConfig = adminService.updateWebsiteConfig(paramJo);
         return R.ok(websiteConfig, "修改成功");
-    }
-
-    @PostMapping("socialConfig")
-    public R<?> saveSocialConfig(@RequestBody @Validated SocialPlatform socialPlatform) {
-        List<SocialPlatform> socialPlatforms = adminService.saveSocialConfig(socialPlatform);
-        return R.ok(socialPlatforms, "保存成功");
-    }
-
-    @DeleteMapping("socialConfig")
-    public R<?> delSocialConfig(@RequestParam @NotNull(message = "source不能为空") String source) {
-        List<SocialPlatform> socialPlatforms = adminService.delSocialConfig(source);
-        return R.ok(socialPlatforms, "删除成功");
     }
 
     @GetMapping("wxPusher")
@@ -122,6 +110,21 @@ public class AdminController {
             throw new BizException("cron表达式不正确");
         }
         systemConfigProperties.setCheckCookieCron(cron);
+        return R.ok(null, "修改成功");
+    }
+
+    @PutMapping("updateAccount")
+    public R<?> updateAccount(@RequestBody JSONObject paramJo) {
+        String username = paramJo.getString("username");
+        String password = paramJo.getString("password");
+        if (StrUtil.isBlank(username)) {
+            throw new BizException("用户名不能为空");
+        }
+        if (StrUtil.isBlank(password)) {
+            throw new BizException("密码不能为空");
+        }
+        systemConfigProperties.setUsername(username);
+        systemConfigProperties.setPassword(password);
         return R.ok(null, "修改成功");
     }
 }

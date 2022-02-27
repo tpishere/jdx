@@ -4,7 +4,6 @@ import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
-import cn.yiidii.jdx.model.enums.SocialPlatformEnum;
 import cn.yiidii.jdx.support.ITask;
 import cn.yiidii.jdx.util.ScheduleTaskUtil;
 import com.alibaba.fastjson.JSONObject;
@@ -12,7 +11,6 @@ import com.alibaba.fastjson.annotation.JSONField;
 import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
-import java.util.Objects;
 import javax.annotation.PostConstruct;
 import javax.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -20,7 +18,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.validator.constraints.Length;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.stereotype.Component;
 
@@ -42,11 +39,13 @@ public class SystemConfigProperties implements InitializingBean, ITask {
     @JSONField(serialize = false, deserialize = false)
     private final ScheduleTaskUtil scheduleTaskUtil;
 
+    private String username = "admin";
+    private String password = "123465";
+
     private String title;
     private String notice;
     private String noticeModel = "TOP";
     private String checkCookieCron = "0 0 12 * * ?";
-    private List<SocialPlatform> socialPlatforms;
     private List<QLConfig> qls;
 
 
@@ -79,28 +78,6 @@ public class SystemConfigProperties implements InitializingBean, ITask {
     @Data
     @AllArgsConstructor
     @NoArgsConstructor
-    public static class SocialPlatform {
-
-        @NotNull(message = "平台不能为空")
-        @Length(min = 1, message = "平台格式不正确")
-        private String source;
-        @NotNull(message = "客户端ID不能为空")
-        @Length(min = 1, message = "客户端ID格式不正确")
-        private String clientId;
-        @NotNull(message = "客户端密钥不能为空")
-        @Length(min = 1, message = "客户端密钥格式不正确")
-        private String clientSecret;
-        @NotNull(message = "重定向地址不能为空")
-        @Length(min = 1, message = "重定向地址格式不正确")
-        private String redirectUri;
-        @NotNull(message = "管理员不能为空")
-        @Length(min = 1, message = "管理员格式不正确")
-        private String admin;
-    }
-
-    @Data
-    @AllArgsConstructor
-    @NoArgsConstructor
     public static class QLConfig {
 
         @NotNull(message = "displayName不能为空")
@@ -111,17 +88,6 @@ public class SystemConfigProperties implements InitializingBean, ITask {
         private String clientId;
         @NotNull(message = "clientSecret不能为空")
         private String clientSecret;
-    }
-
-    public SocialPlatform getSocialConfig(String source) {
-        return this.socialPlatforms.stream()
-                .filter(s -> Objects.nonNull(SocialPlatformEnum.get(s.getSource())) && StrUtil.equals(source, s.getSource()))
-                .findFirst()
-                .orElse(null);
-    }
-
-    public SocialPlatform getSocialConfig(SocialPlatformEnum socialPlatformEnum) {
-        return this.getSocialConfig(socialPlatformEnum.name());
     }
 
     public QLConfig getQLConfigByDisplayName(String displayName) {

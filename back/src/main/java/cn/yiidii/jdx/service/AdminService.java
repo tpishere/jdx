@@ -1,12 +1,9 @@
 package cn.yiidii.jdx.service;
 
-import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.yiidii.jdx.config.prop.SystemConfigProperties;
 import cn.yiidii.jdx.config.prop.SystemConfigProperties.QLConfig;
-import cn.yiidii.jdx.config.prop.SystemConfigProperties.SocialPlatform;
 import cn.yiidii.jdx.model.enums.NoticeModelEnum;
-import cn.yiidii.jdx.model.enums.SocialPlatformEnum;
 import cn.yiidii.jdx.model.ex.BizException;
 import cn.yiidii.jdx.util.ScheduleTaskUtil;
 import com.alibaba.fastjson.JSON;
@@ -91,40 +88,6 @@ public class AdminService {
         }
         log.debug(StrUtil.format("[admin] 更新网站配置: {}", result.toJSONString()));
         return result;
-    }
-
-    public List<SocialPlatform> saveSocialConfig(SocialPlatform socialPlatformParam) {
-        String source = socialPlatformParam.getSource();
-        SocialPlatformEnum socialPlatformEnum = SocialPlatformEnum.get(source);
-        if (Objects.isNull(socialPlatformEnum)) {
-            throw new BizException(StrUtil.format("暂未支持该平台[{}]", source));
-        }
-        SocialPlatform exist = systemConfigProperties.getSocialConfig(socialPlatformParam.getSource());
-        List<SocialPlatform> socialPlatforms = systemConfigProperties.getSocialPlatforms();
-        if (Objects.nonNull(exist)) {
-            BeanUtil.copyProperties(socialPlatformParam, exist);
-        } else {
-            socialPlatforms.add(socialPlatformParam);
-        }
-        log.debug(StrUtil.format("[admin] 更新社交登录配置: {}", JSON.toJSONString(socialPlatforms)));
-        return socialPlatforms;
-    }
-
-    public List<SocialPlatform> delSocialConfig(String source) {
-        List<SocialPlatform> socialPlatforms = systemConfigProperties.getSocialPlatforms();
-        if (socialPlatforms.size() == 1) {
-            throw new BizException("最后一个配置不能删除");
-        }
-        SocialPlatform exist = systemConfigProperties.getSocialConfig(source);
-        if (Objects.isNull(exist)) {
-            throw new BizException("配置不存在, 请先新增");
-        }
-        socialPlatforms = socialPlatforms.stream()
-                .filter(s -> StrUtil.equals(source, s.getSource()))
-                .collect(Collectors.toList());
-        systemConfigProperties.setSocialPlatforms(socialPlatforms);
-        log.debug(StrUtil.format("[admin] 删除社交登录配置: {}", source));
-        return socialPlatforms;
     }
 
 }

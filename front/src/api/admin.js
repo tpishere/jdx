@@ -3,7 +3,7 @@ import request from "@/util/request";
 // 登录
 export function login(data) {
   return request({
-    url: "oauth/login",
+    url: "auth/login",
     method: "post",
     data: data
   });
@@ -51,23 +51,6 @@ export function updateWebsiteConfig(data) {
   });
 }
 
-// 保存社交配置(新增/编辑)
-export function saveSocialConfig(data) {
-  return request({
-    url: "admin/socialConfig",
-    method: "post",
-    data: data
-  });
-}
-
-// 删除社交配置
-export function delSocialConfig(source) {
-  return request({
-    url: "admin/socialConfig?source=" + source,
-    method: "delete"
-  });
-}
-
 export function getWxPusher() {
   return request({
     url: "admin/wxPusher",
@@ -93,6 +76,14 @@ export function checkCookie() {
 export function updateCheckCookieCron(data) {
   return request({
     url: "admin/updateCheckCookieCron",
+    method: "put",
+    data: data
+  });
+}
+
+export function updateAccount(data) {
+  return request({
+    url: "admin/updateAccount",
     method: "put",
     data: data
   });

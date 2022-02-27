@@ -21,7 +21,7 @@ docker run -d \
     -v <config dir>:/jdx/config \
     -p <port>:80 \
     --restart=always \
-    --name jdx registry.cn-hangzhou.aliyuncs.com/yiidii-hub/jdx:v0.1.7
+    --name jdx registry.cn-hangzhou.aliyuncs.com/yiidii-hub/jdx:v0.1.8
 ```
 > 这里命令自行替换卷和端口映射
 > 
@@ -31,7 +31,7 @@ docker run -d \
 >   -v  /data/jdx/config:/jdx/config \
 >   -p 5702:80 \
 >   --restart=always \
->   --name jdx registry.cn-hangzhou.aliyuncs.com/yiidii-hub/jdx:v0.1.7
+>   --name jdx registry.cn-hangzhou.aliyuncs.com/yiidii-hub/jdx:v0.1.8
 > ```
 > 
 注意：
@@ -40,40 +40,12 @@ docker run -d \
 ### 访问
 这时候访问 `http://ip:port/` 就能访问了
 
-### 后台管理配置
-后台访问需要的映射的`config`目录修改`config.json`文件。
-
-socialPlatforms为社交登录的配置，说明如下：
-- `source`： `GITEE` `GITHUB` `BAIDU`
-- `clientId`：社交平台的配置应用的`clientId`
-- `clientSecret`：社交平台的配置应用的`clientSecret`
-- `redirectUri`：`http://xxxx:xxx/oauth/callback/<source>`
-  > 1. 这里的`source`必须为：`GITEE` 或 `GITHUB` （例：`http://xxxx:xxx/oauth/callback/GITEE`）
-  > 
-  > 2. `xxxx:xxx` 为`JDX`的域名或者`ip:port`
-- `admin`：管理员的名称，多个以英文半角逗号`,`分割
-
-注意：
-- 社交登录的`source`目前只支持`GITEE` `GITHUB` `BAIDU`，请勿填写错误，推荐使用`GITEE`
-- 配置文件不能写任何注释，必须是一个完整的json文件
-
-**配置应用相关文档**
-- [Gitee](https://gitee.com/api/v5/oauth_doc#/list-item-3)
-  > `GITEE` 获取自己用户名的方法: 登录 -> 点击右上角头像 -> 个人主页 -> 地址栏的`https://gitee.com/`之后的就是自己的用户名
-- [Github](https://docs.github.com/en/developers/apps/building-oauth-apps/creating-an-oauth-app)
-  > `GITHUB` 获取自己用户名的方法: 登录 -> 点击右上角头像 -> Your profile -> 地址栏的`https://github.com/`之后的就是自己的用户名
-- [Baidu](http://developer.baidu.com/wiki/index.php?title=docs/pcs/guide/app_create)
+### 后台登录
+首次登录用户名：`admin`, 密码：`123465`
 
 ## 使用说明
 1. QL配置只能删除和新增，不能编辑操作
 2. 所有涉及编辑和删除的操作，左滑即可（就像微信删除最近联系人一样...）
-
-其他问题可以空Q&A
-
-## Q&A
-**Q: 点击登录出现: `{"error":"Application does not exist"}`**
-
-A: 在对应的平台正确配置正确的应用，特别是应用回调地址，详情看上方**配置应用相关文档**
 
 ## 更新说明
 1. 停止并删除容器

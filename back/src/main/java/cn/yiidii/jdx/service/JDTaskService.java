@@ -53,7 +53,7 @@ public class JDTaskService implements ITask {
             // 执行所有ck
             List<CompletableFuture<CheckCookieResult>> completableFutures = envs.stream().map(env -> CompletableFuture.supplyAsync(() -> {
                 String value = env.getString("value");
-                Thread.currentThread().setName(String.format(Thread.currentThread().getName(), JDXUtil.getPtPinFromCK(value)));
+                Thread.currentThread().setName(StrUtil.format("checkCookie_{}", JDXUtil.getPtPinFromCK(value)));
                 CheckCookieResult checkCookieResult = CheckJDCKUtil.checkCookie(value);
                 checkCookieResult.set_id(env.getString("_id"));
                 return checkCookieResult;
@@ -90,6 +90,8 @@ public class JDTaskService implements ITask {
                     result.add(jo);
                 }
             } catch (Exception e) {
+                e.printStackTrace();
+                log.warn(StrUtil.format("检查Cookie任务异常, e: {}", e.getMessage()));
                 throw new BizException("检查Cookie任务异常");
             }
 
