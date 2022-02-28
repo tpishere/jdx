@@ -1750,8 +1750,7 @@ async function sendNotifybyWxPucher(text, desp, PtPin, author = '\n\n本通知 B
 
 }
 
-async function sendNotifyWithPtPin(text, desp, ptPin, author = '\n\n本通知 By ccwav Mod', strsummary = "") {
-
+async function sendNotifyWithPtPin(text, desp, ptPin, author = '\n\n本通知 JDX', strsummary = "") {
     try {
         await jdxNotify(text, desp, ptPin);
     } catch (error) {
@@ -1760,6 +1759,9 @@ async function sendNotifyWithPtPin(text, desp, ptPin, author = '\n\n本通知 By
 }
 
 function jdxNotify(text, desp, pt_pin) {
+    if (!JDX_URL) {
+        return
+    }
     return new Promise((resolve) => {
         const options = {
             url: `${JDX_URL}`,

@@ -348,6 +348,7 @@ if(DisableIndex!=-1){
 
 				if ($.isNode()) {
 					await notify.sendNotify(`${$.name}cookie已失效 - ${$.UserName}`, `京东账号${$.index} ${$.UserName}\n请重新登录获取cookie`);
+					await notify.sendNotifyWithPtPin(`${$.name}cookie已失效 - ${$.UserName}`, `京东账号${$.index} ${$.UserName}\n请重新登录获取cookie`, $.pt_pin)
 				}
 				continue
 			}
@@ -1008,7 +1009,7 @@ async function showMsg() {
 		await notify.sendNotifybyWxPucher(strTitle, `${ReturnMessage}`, `${$.UserName}`,'\n\n本通知 By ccwav Mod',strsummary);
 	}
 
-	if ($.isNode() && JDX_URL) {
+	if ($.isNode()) {
 		var strTitle="京东资产变动";
 		ReturnMessage=`【账号名称】${$.nickName || $.UserName}\n`+ReturnMessage;
 
