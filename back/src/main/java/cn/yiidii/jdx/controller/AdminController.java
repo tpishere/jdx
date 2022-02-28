@@ -70,8 +70,18 @@ public class AdminController {
         result.put("password", systemConfigProperties.getPassword());
         result.put("noticeModel", systemConfigProperties.getNoticeModel());
         result.put("checkCookieCron", systemConfigProperties.getCheckCookieCron());
-        result.put("versionInfo", githubVersionListener.getVersionInfo());
         return R.ok(result);
+    }
+
+    @GetMapping("version")
+    public R<?> getVersion() {
+        return R.ok(githubVersionListener.getVersionInfo());
+    }
+
+    @PostMapping("checkUpgrade")
+    public R<?> checkUpgrade() {
+        githubVersionListener.checkUpgrade();
+        return R.ok(githubVersionListener.getVersionInfo());
     }
 
     @PutMapping("websiteConfig")
