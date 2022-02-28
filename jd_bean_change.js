@@ -73,6 +73,7 @@ RemainMessage += '【京东金融】京东金融app->我的->养猪猪,完成是
 RemainMessage += '【其他】京喜红包只能在京喜使用,其他同理';
 
 let WP_APP_TOKEN_ONE = "";
+let JDX_URL = "";
 
 let TempBaipiao = "";
 
@@ -90,6 +91,10 @@ if ($.isNode()) {
 		} else{
 			console.log(`检测到设定了临期京豆转换喜豆,但时间未到17点后，暂不执行转换...`);
 		}
+	}
+
+	if (process.env.JDX_URL) {
+		JDX_URL = process.env.JDX_URL;
 	}
 }
 if(WP_APP_TOKEN_ONE)
