@@ -1,6 +1,7 @@
 package cn.yiidii.jdx.controller;
 
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.extra.spring.SpringUtil;
 import cn.yiidii.jdx.config.prop.JDUserConfigProperties;
 import cn.yiidii.jdx.config.prop.JDUserConfigProperties.JDUserConfig;
 import cn.yiidii.jdx.model.R;
@@ -11,6 +12,7 @@ import java.util.Arrays;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.util.Assert;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -58,8 +60,9 @@ public class ThirdCallbackController {
     @PostMapping("/qlNotify")
     public R<?> qlNotify(@RequestBody JSONObject paramJo) {
         log.debug(StrUtil.format("青龙任务执行后通知, 参数: {}", paramJo.toJSONString()));
-        this.handle(paramJo);
-        return R.ok();
+        ThreadPoolTaskExecutor executor = SpringUtil.getBean("asyncExecutor", ThreadPoolTaskExecutor.class);
+        executor.execute(() -> this.handle(paramJo));
+        return R.ok(null, "调用成功");
     }
 
     private void handle(JSONObject paramJo) {
