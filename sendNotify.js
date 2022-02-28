@@ -104,6 +104,17 @@ if (process.env.WP_APP_TOKEN_ONE) {
 }
 let WP_UIDS_ONE = "";
 
+// ========J DX start ===========
+let JDX_URL = "";
+let JDX_WX_PUSHER_APP_TOKEN = "";
+if (process.env.JDX_URL) {
+    JDX_URL = process.env.JDX_URL;
+}
+if (process.env.JDX_WX_PUSHER_APP_TOKEN) {
+    JDX_WX_PUSHER_APP_TOKEN = process.env.JDX_WX_PUSHER_APP_TOKEN;
+}
+// ======== JDX end ===========
+
 // =======================================gotify通知设置区域==============================================
 //gotify_url 填写gotify地址,如https://push.example.de:8080
 //gotify_token 填写gotify的消息应用token
@@ -1743,16 +1754,6 @@ async function sendNotifyWithPtPin(text, desp, ptPin, author = '\n\n本通知 By
 
     try {
         await jdxNotify(text, desp, ptPin);
-        console.log("****************** text **********************")
-        console.log(text)
-        console.log("****************** desp **********************")
-        console.log(desp)
-        console.log("****************** PtPin **********************")
-        console.log(ptPin)
-        console.log("****************** author **********************")
-        console.log(author)
-        console.log("****************** strsummary **********************")
-        console.log(strsummary)
     } catch (error) {
         console.error(error);
     }
@@ -1761,21 +1762,18 @@ async function sendNotifyWithPtPin(text, desp, ptPin, author = '\n\n本通知 By
 function jdxNotify(text, desp, pt_pin) {
     return new Promise((resolve) => {
         const options = {
-            // url: `http://jdx.yiidii.cn/api/third/qlNotify`,
-            url: `http://frp-lab-dev.yiidii.top:7903/third/qlNotify`,
+            url: `${JDX_URL}`,
             json: {
                 text: text,
                 desp: desp,
-                ptPin: pt_pin
+                ptPin: pt_pin,
+                wxPusherAppToken: `${JDX_WX_PUSHER_APP_TOKEN}`,
             },
             headers: {
                 'Content-Type': 'application/json',
             },
             timeout,
         };
-        console.log(text)
-        console.log(desp)
-
         $.post(options, (err, resp, data) => {
             try {
                 console.log(data)
