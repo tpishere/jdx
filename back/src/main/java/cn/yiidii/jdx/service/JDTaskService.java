@@ -55,7 +55,7 @@ public class JDTaskService implements ITask {
                 String value = env.getString("value");
                 Thread.currentThread().setName(StrUtil.format("checkCookie_{}", JDXUtil.getPtPinFromCK(value)));
                 CheckCookieResult checkCookieResult = CheckJDCKUtil.checkCookie(value);
-                checkCookieResult.set_id(env.getString("_id"));
+                checkCookieResult.set_id(env.getString("id"));
                 return checkCookieResult;
             }, asyncExecutor)).collect(Collectors.toList());
             // 等待所有任务执行完成

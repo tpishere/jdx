@@ -57,7 +57,7 @@ public class QLService implements ITask {
             qlConfig.setUsed(used);
             throw new BizException(StrUtil.format("节点【{}】车位已满", displayName));
         }
-        qlConfig.setUsed( normalEnvs.size());
+        qlConfig.setUsed(normalEnvs.size());
 
         // 获取存在的env, env存在就不更新备注
         String ptPin = JDXUtil.getPtPinFromCK(cookie);
@@ -105,19 +105,32 @@ public class QLService implements ITask {
             envJo.put("name", name);
             envJo.put("value", value);
             envJo.put("remarks", remark);
-            envJo.put("_id", existEnv.getString("_id"));
+            envJo.put("_id", existEnv.getString("id"));
             try {
-                log.debug(StrUtil.format("[青龙 - {}] 更新环境变量, 参数: {}, 响应: {}", displayName, envJo.toJSONString()));
+                // 第一次，用_id
+                log.debug(StrUtil.format("[青龙 - {}] 第一次尝试更新环境变量, 参数: {}", displayName, envJo.toJSONString()));
                 HttpResponse response = HttpRequest.put(qlConfig.getUrl().concat("open/envs"))
                         .bearerAuth(this.getQLToken(displayName))
                         .body(envJo.toJSONString())
                         .execute();
-                log.debug(StrUtil.format("[青龙 - {}] 更新环境变量, 响应: {}", displayName, response.body()));
+                log.debug(StrUtil.format("[青龙 - {}] 更新环境变量, 状态码: {}, 响应: {}", displayName, response.getStatus(), response.body()));
+
+                // 如果第一次异常，第二次用id
+                if (response.getStatus() == HttpStatus.HTTP_INTERNAL_ERROR) {
+                    envJo.remove("_id");
+                    envJo.put("id", existEnv.getString("id"));
+                    log.debug(StrUtil.format("[青龙 - {}] 第二次尝试更新环境变量, 参数: {}", displayName, envJo.toJSONString()));
+                    response = HttpRequest.put(qlConfig.getUrl().concat("open/envs"))
+                            .bearerAuth(this.getQLToken(displayName))
+                            .body(envJo.toJSONString())
+                            .execute();
+                    log.debug(StrUtil.format("[青龙 - {}] 第二次尝试更新环境变量, 状态码: {}, 响应: {}", displayName, response.getStatus(), response.body()));
+                }
 
                 // 启用
                 if (existEnv.getInteger("status") == 1) {
                     JSONArray paramJa = new JSONArray();
-                    paramJa.add(existEnv.getString("_id"));
+                    paramJa.add(existEnv.getString("id"));
                     log.debug(StrUtil.format("[青龙 - {}] 启用环境变量, 参数: {}", displayName, paramJa.toJSONString()));
                     response = HttpRequest.put(qlConfig.getUrl().concat("open/envs/enable"))
                             .bearerAuth(this.getQLToken(displayName))
@@ -163,7 +176,9 @@ public class QLService implements ITask {
             return data.stream().map(d -> {
                 JSONObject tmp = (JSONObject) d;
                 JSONObject jo = new JSONObject();
-                jo.put("_id", tmp.getString("_id"));
+                String _id = tmp.getString("_id");
+                String id = tmp.getString("id");
+                jo.put("id", StrUtil.isNotBlank(_id) ? _id : StrUtil.isNotBlank(id) ? id : "");
                 jo.put("name", tmp.getString("name"));
                 jo.put("value", tmp.getString("value"));
                 jo.put("status", tmp.getInteger("status"));
@@ -241,7 +256,7 @@ public class QLService implements ITask {
      * @return JSONObject
      */
     private JSONObject getExistCK(String displayName, String cookie) {
-        log.debug(StrUtil.format("[青龙 - {}], 搜索Cookie: {}", displayName, cookie));
+        log.debug(StrUtil.format("[青龙 - {}], 获取存在的Cookie: {}", displayName, cookie));
         JSONObject result;
         List<JSONObject> envs = this.searchEnv(displayName, cookie);
         if (envs.size() == 0) {
@@ -259,7 +274,7 @@ public class QLService implements ITask {
                 result = new JSONObject();
             }
         }
-        log.debug(StrUtil.format("[青龙 - {}], 搜索Cookie: {}, 最终返回结果: {}", displayName, cookie, result.toJSONString()));
+        log.debug(StrUtil.format("[青龙 - {}], 获取存在的Cookie: {}, 最终返回结果: {}", displayName, cookie, result.toJSONString()));
         return result;
     }
 }
