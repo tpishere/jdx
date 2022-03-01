@@ -34,6 +34,15 @@ export function addQLConfig(data) {
   });
 }
 
+// 编辑青龙配置
+export function updateQLConfig(data) {
+  return request({
+    url: "admin/ql",
+    method: "put",
+    data: data
+  });
+}
+
 // 系统配置
 export function getSystemConfig() {
   return request({

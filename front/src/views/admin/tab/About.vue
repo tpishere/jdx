@@ -6,8 +6,10 @@
           :style="{ color: '#1989fa', borderColor: '#1989fa', padding: '0 16px' }"
       >版本信息
       </van-divider>
-      <div style="color: #909399; font-size: 14px;margin-bottom: 16px">版本号: v{{versionInfo.appVersion}}</div>
-      <div v-if="versionInfo.needUpgrade && versionInfo.latestVersion" style="color: #F56C6C; font-size: 14px;margin-bottom: 16px">检测到可用版本: v{{versionInfo.latestVersion}}</div>
+      <div style="color: #909399; font-size: 14px;margin-bottom: 16px">当前版本: v{{ versionInfo.appVersion }}</div>
+      <div v-if="versionInfo.needUpgrade && versionInfo.latestVersion"
+           style="color: #F56C6C; font-size: 14px;margin-bottom: 16px">检测到可用版本: v{{ versionInfo.latestVersion }}
+      </div>
       <van-button
           color="linear-gradient(to right, #ff6034, #ee0a24)"
           @click="checkUpgrade()"
@@ -76,7 +78,7 @@
 </template>
 
 <script>
-import {getVersion,checkUpgrade} from "@/api/admin";
+import {getVersion, checkUpgrade} from "@/api/admin";
 
 export default {
   name: "About",
@@ -125,6 +127,15 @@ export default {
             "修复：pt_pin中文问题导致更新不上的问题",
             "调整：移除社交登录，改为用户名密码登录"
           ]
+        },
+        {
+          date: "2022-03-01",
+          logs: [
+            "修复：兼容最新版QL（解决QL 2.11.3等版本更新Cookie异常的情况）",
+            "新增：QL配置可编辑",
+            "新增：QL最大车位和禁用QL配置",
+            "新增：检测系统版本"
+          ]
         }
       ],
       versionInfo: {
@@ -138,12 +149,12 @@ export default {
     this.getVersion()
   },
   methods: {
-    getVersion: function (){
+    getVersion: function () {
       getVersion().then(resp => {
         this.versionInfo = resp.data
       })
     },
-    checkUpgrade: function (){
+    checkUpgrade: function () {
       checkUpgrade().then(resp => {
         this.versionInfo = resp.data
       })

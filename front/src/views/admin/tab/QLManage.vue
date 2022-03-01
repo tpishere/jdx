@@ -2,16 +2,14 @@
   <div>
     <div style="margin: 16px 0 8px 20px">
       <van-popover
-          v-model="showPopover"
-          trigger="click"
-          :actions="actions"
-          @select="showAddQLConfig()"
-      >
+          v-model="qlOptPopover"
+          placement="right-start"
+          trigger="click">
+        <div style="width: 96px;text-align: center">
+          <van-button style="border: none; margin: 4px 0" type="default" @click="showSaveQLConfig()">新增配置</van-button>
+        </div>
         <template #reference>
-          <van-button type="primary" icon="apps-o" size="small"
-          >操作
-          </van-button
-          >
+          <van-button type="primary" icon="apps-o" size="small">操作</van-button>
         </template>
       </van-popover>
     </div>
@@ -47,11 +45,18 @@
         </van-cell>
         <van-cell title="是否禁用">
           <template #default>
-            {{ qlConfig.disabled }}
+            {{ computedDisableText(qlConfig.disabled) }}
           </template>
         </van-cell>
       </van-cell-group>
       <template #right>
+        <van-button
+            square
+            text="编辑"
+            type="info"
+            class="slide-button"
+            @click="showSaveQLConfig(qlConfig)"
+        />
         <van-button
             square
             text="删除"
@@ -62,34 +67,35 @@
       </template>
     </van-swipe-cell>
 
-    <van-action-sheet v-model="addVisible" title="新增配置">
+    <van-action-sheet v-model="saveField.show" :title="saveField.title">
       <van-form>
         <van-field
-            v-model="form.displayName"
+            v-model="saveField.form.displayName"
+            :disabled="saveField.func=='update'"
             name="displayName"
             label="显示名称"
             placeholder="显示名称"
         />
         <van-field
-            v-model="form.url"
+            v-model="saveField.form.url"
             name="url"
             label="地址"
             placeholder="http://127.0.0.1:5701/"
         />
         <van-field
-            v-model="form.clientId"
+            v-model="saveField.form.clientId"
             name="clientId"
             label="客户端ID"
             placeholder="客户端ID"
         />
         <van-field
-            v-model="form.clientSecret"
+            v-model="saveField.form.clientSecret"
             name="clientSecret"
             label="客户端密钥"
             placeholder="客户端密钥"
         />
         <van-field
-            v-model="form.max"
+            v-model="saveField.form.max"
             name="max"
             type="number"
             label="最大数量"
@@ -99,22 +105,22 @@
             readonly
             clickable
             label="是否禁用"
-            :value="form.disabledText"
+            :value="saveField.disabledPicker.text"
             placeholder="是否禁用"
-            @click="form.disabledPicker.show = true"
+            @click="saveField.disabledPicker.show = true"
         />
-        <van-popup v-model="form.disabledPicker.show" round position="bottom">
+        <van-popup v-model="saveField.disabledPicker.show" round position="bottom">
           <van-picker
               show-toolbar
               value-key="text"
-              :columns="form.disabledPicker.columns"
-              @cancel="form.disabledPicker.show = false"
-              @confirm="disableConfirm"
+              :columns="saveField.disabledPicker.columns"
+              @cancel="saveField.disabledPicker.show = false"
+              @confirm="onConfirmDisabled"
           />
         </van-popup>
         <div style="margin: 16px;">
-          <van-button round block type="info" @click="addQLConfig()"
-          >提交
+          <van-button v-if="saveField.func == 'add'" round block type="primary" @click="addQLConfig()">添加</van-button>
+          <van-button v-if="saveField.func == 'update'" round block type="info" @click="updateQLConfig()">保存
           </van-button>
         </div>
       </van-form>
@@ -123,39 +129,54 @@
 </template>
 
 <script>
-import {getQLConfigList, delQLConfig, addQLConfig} from "@/api/admin";
+import {getQLConfigList, delQLConfig, addQLConfig, updateQLConfig} from "@/api/admin";
 
 export default {
   name: "QLManage",
   data() {
     return {
       qlConfigList: [{displayName: "", clientId: "", clientSecret: "", url: "", max: 0, used: 0, disabled: 0}],
-      showPopover: false,
-      actions: [{text: "新增配置"}],
-      addVisible: false,
-      form: {
-        displayName: "",
-        clientId: "",
-        clientSecret: "",
-        max: 30,
-        disabledText: "启用",
-        disabled: 0,
+      qlOptPopover: false,
+      saveField: {
+        show: false,
+        title: "",
+        form: {
+          displayName: "",
+          clientId: "",
+          clientSecret: "",
+          max: 30,
+          disabled: 0,
+        },
         disabledPicker: {
           show: false,
-          columns: [{text: "启用", value: 0}, {text: "禁用", value: 1}]
-        }
+          text: '启用',
+          columns: [{text: '启用', value: 0,}, {text: '禁用', value: 1}]
+        },
+        func: 'add'
       }
     };
   },
+  computed: {
+    computedDisableText() {
+      return function (value) {
+        console.log(value)
+        let options = {0: "启用", 1: "禁用"}
+        console.log(options[value])
+        return options[value]
+      }
+    }
+  },
   mounted() {
     this.getQLConfigList();
-  },
+  }
+  ,
   methods: {
     getQLConfigList: function () {
       getQLConfigList().then(resp => {
         this.qlConfigList = resp.data;
       });
-    },
+    }
+    ,
     delQLConfig: function (displayName) {
       this.$dialog
           .confirm({
@@ -170,35 +191,50 @@ export default {
           .catch(() => {
             this.$dialog.close();
           });
-    },
-    showAddQLConfig: function () {
-      this.form = {
-        displayName: "",
-        clientId: "",
-        clientSecret: "",
-        max: 30,
-        disabledText: "启用",
-        disabled: 0,
-        disabledPicker: {
-          show: false,
-          columns: [{text: "启用", value: 0}, {text: "禁用", value: 1}]
+    }
+    ,
+    showSaveQLConfig: function (params) {
+      if (params) {
+        this.saveField.title = `编辑  ${params.displayName}`
+        this.saveField.form = params
+        this.saveField.func = "update"
+      } else {
+        this.saveField.title = "新增QL配置"
+        this.saveField.form = {
+          displayName: "",
+          clientId: "",
+          clientSecret: "",
+          max: 30,
+          disabled: 0,
         }
+        this.saveField.func = "add"
       }
-      this.addVisible = true;
-    },
+      this.saveField.disabledPicker.text = this.computedDisableText(this.saveField.form.disabled)
+      this.saveField.show = true;
+      this.qlOptPopover = false;
+    }
+    ,
     addQLConfig: function () {
-      addQLConfig(this.form).then(resp => {
+      addQLConfig(this.saveField.form).then(resp => {
         this.qlConfigList = resp.data;
-        this.form = {displayName: "", clientId: "", clientSecret: ""};
-        this.addVisible = false;
+        this.saveField.show = false;
+      });
+    }
+    ,
+    updateQLConfig: function () {
+      updateQLConfig(this.saveField.form).then(resp => {
+        this.qlConfigList = resp.data;
+        this.saveField.show = false;
       });
     },
-    disableConfirm: function (value) {
-      this.form.disabled = value.value
-      this.form.disabledPicker.show = false
+    onConfirmDisabled: function (value) {
+      this.saveField.form.disabled = value.value
+      this.saveField.disabledPicker.text = this.computedDisableText(this.saveField.form.disabled)
+      this.saveField.disabledPicker.show = false
     }
   }
-};
+}
+;
 </script>
 
 <style>

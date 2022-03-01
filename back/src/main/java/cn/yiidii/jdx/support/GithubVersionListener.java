@@ -3,8 +3,10 @@ package cn.yiidii.jdx.support;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.core.util.XmlUtil;
 import cn.hutool.extra.spring.SpringUtil;
+import cn.hutool.http.Header;
 import cn.hutool.http.HttpRequest;
 import cn.hutool.http.HttpResponse;
+import cn.hutool.http.HttpStatus;
 import cn.yiidii.jdx.util.ScheduleTaskUtil;
 import com.alibaba.fastjson.JSONObject;
 import lombok.RequiredArgsConstructor;
@@ -44,6 +46,9 @@ public class GithubVersionListener implements ITask {
         Integer latestVersion;
         try {
             HttpResponse resp = HttpRequest.get(POM_RAW_URL).execute();
+            if (resp.getStatus() == HttpStatus.HTTP_MOVED_TEMP) {
+                resp = HttpRequest.get(resp.header(Header.LOCATION)).execute();
+            }
             String body = resp.body();
             JSONObject pomJo = XmlUtil.xmlToBean(XmlUtil.readXML(body), JSONObject.class);
             latestVersionStr = pomJo.getJSONObject("project").getString("version");
