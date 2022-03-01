@@ -60,7 +60,7 @@ docker run -d \
 **配置方法:**
 1. 先拉库
 	```shell
-	ql repo https://github.com/wangyiidii/jdx.git "jd_" "" "sendNotify|USER_AGENTS|jdCookie"
+	ql repo https://ghproxy.com/https://github.com/wangyiidii/jdx.git "jd_" "" "sendNotify|USER_AGENTS|jdCookie|ql" "master"
 	```
 	这里只拉取了我改后的`jd_任务`和`sendNotify.js`文件。如果自己拉的其他库里面有`sendNotiy.js`文件，记得自己删除下。
 2. 配置QL配置
