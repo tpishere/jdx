@@ -40,23 +40,24 @@ public class GithubVersionListener implements ITask {
     }
 
     public void checkUpgrade() {
-        String versionStr;
+        String latestVersionStr;
         Integer latestVersion;
         try {
             HttpResponse resp = HttpRequest.get(POM_RAW_URL).execute();
             String body = resp.body();
             JSONObject pomJo = XmlUtil.xmlToBean(XmlUtil.readXML(body), JSONObject.class);
-            versionStr = pomJo.getJSONObject("project").getString("version");
-            latestVersion = Integer.valueOf(versionStr.replaceAll("[^\\d+]", ""));
+            latestVersionStr = pomJo.getJSONObject("project").getString("version");
+            latestVersion = Integer.valueOf(latestVersionStr.replaceAll("[^\\d+]", ""));
         } catch (Exception e) {
             log.error(StrUtil.format("获取Github版本号发生错误: {}", e.getMessage()));
             return;
         }
-        Integer appVersion = Integer.valueOf(SpringUtil.getProperty("spring.application.version").replaceAll("[^\\d]", ""));
+        String appVersionStr = SpringUtil.getProperty("spring.application.version");
+        Integer appVersion = Integer.valueOf(appVersionStr.replaceAll("[^\\d]", ""));
         if (latestVersion > appVersion) {
-            log.info(StrUtil.format("检测到最新版本号: {}, 当前版本号: {}", latestVersion, appVersion));
+            log.info(StrUtil.format("检测到最新版本号: v{}, 当前版本号: v{}", latestVersionStr, appVersionStr));
             needUpgrade = true;
-            GithubVersionListener.latestVersion = versionStr;
+            GithubVersionListener.latestVersion = latestVersionStr;
             scheduleTaskUtil.stopCron("SYS_checkUpgrade");
         }
     }
