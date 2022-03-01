@@ -55,6 +55,12 @@ public class AdminController {
         return R.ok(qlConfigs, "添加成功");
     }
 
+    @PutMapping("ql")
+    public R<?> updateQLConfig(@RequestBody @Validated QLConfig qlConfig) {
+        List<QLConfig> qlConfigs = adminService.updateQLConfig(qlConfig);
+        return R.ok(qlConfigs, "修改成功");
+    }
+
     @DeleteMapping("ql")
     public R<?> delQLConfig(@RequestParam @NotNull(message = "displayName不能为空") String displayName) {
         List<QLConfig> qlConfigs = adminService.delQLConfig(displayName);

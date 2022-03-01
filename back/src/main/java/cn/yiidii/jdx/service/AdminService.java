@@ -11,6 +11,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -47,6 +48,25 @@ public class AdminService {
         List<QLConfig> qls = systemConfigProperties.getQls();
         qls.add(qlConfig);
         log.debug(StrUtil.format("[admin] 添加ql: {}", JSON.toJSONString(qls)));
+        return qls;
+    }
+
+    public List<QLConfig> updateQLConfig(QLConfig qlConfig) {
+        QLConfig exist = systemConfigProperties.getQLConfigByDisplayName(qlConfig.getDisplayName());
+        if (Objects.isNull(exist)) {
+            throw new BizException(StrUtil.format("配置[{}]不存在", qlConfig.getDisplayName()));
+        }
+        String url = qlConfig.getUrl();
+        url = url.startsWith("http") ? url : "http://".concat(url);
+        url = url.endsWith("/") ? url : url.concat("/");
+        qlConfig.setUrl(url);
+
+        List<QLConfig> qls = systemConfigProperties.getQls();
+        Map<String, QLConfig> qlConfigMap = qls.stream().collect(Collectors.toMap(QLConfig::getDisplayName, e -> e, (e1, e2) -> e2));
+        qlConfigMap.put(qlConfig.getDisplayName(), qlConfig);
+        qls = qlConfigMap.values().stream().collect(Collectors.toList());
+        systemConfigProperties.setQls(qlConfigMap.values().stream().collect(Collectors.toList()));
+        log.debug(StrUtil.format("[admin] 更新ql: {}", JSON.toJSONString(qls)));
         return qls;
     }
 
