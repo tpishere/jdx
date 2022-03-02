@@ -3,7 +3,9 @@ package cn.yiidii.jdx.config.prop;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.extra.spring.SpringUtil;
 import cn.hutool.json.JSONUtil;
+import cn.yiidii.jdx.model.dto.AdminNotifyEvent;
 import cn.yiidii.jdx.model.ex.BizException;
 import cn.yiidii.jdx.support.ITask;
 import cn.yiidii.jdx.util.JDXUtil;
@@ -95,6 +97,9 @@ public class JDUserConfigProperties implements InitializingBean, ITask {
         } else {
             this.getJdUsers().add(new JDUserConfig(ptPin, wxPusherUid));
         }
+        // 通知管理员
+        SpringUtil.publishEvent(new AdminNotifyEvent("绑定WxPusherUid通知",
+                StrUtil.format("【pt_pin】{}\r\n【UID】{}", ptPin, wxPusherUid)));
     }
 
     @Override

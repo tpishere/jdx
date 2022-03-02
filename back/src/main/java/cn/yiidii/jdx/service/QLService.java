@@ -2,11 +2,13 @@ package cn.yiidii.jdx.service;
 
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.extra.spring.SpringUtil;
 import cn.hutool.http.HttpRequest;
 import cn.hutool.http.HttpResponse;
 import cn.hutool.http.HttpStatus;
 import cn.yiidii.jdx.config.prop.SystemConfigProperties;
 import cn.yiidii.jdx.config.prop.SystemConfigProperties.QLConfig;
+import cn.yiidii.jdx.model.dto.AdminNotifyEvent;
 import cn.yiidii.jdx.model.ex.BizException;
 import cn.yiidii.jdx.support.ITask;
 import cn.yiidii.jdx.util.JDXUtil;
@@ -66,6 +68,11 @@ public class QLService implements ITask {
 
         // 保存并启用
         this.saveAndEnableEnv(displayName, "JD_COOKIE", cookie, remark);
+
+        // 通知管理员
+        SpringUtil.publishEvent(new AdminNotifyEvent(
+                StrUtil.format("节点【{}】{}Cookie通知", displayName, existEnv.isEmpty() ? "新增" : "更新"),
+                StrUtil.format("【节点】{}\r\n【pt_pin】{}\r\n【备注】{}", displayName, ptPin, remark)));
     }
 
     public void saveAndEnableEnv(String displayName, String name, String value, String remark) {

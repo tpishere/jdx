@@ -7,6 +7,7 @@ import cn.yiidii.jdx.config.prop.JDUserConfigProperties;
 import cn.yiidii.jdx.config.prop.JDUserConfigProperties.JDUserConfig;
 import cn.yiidii.jdx.config.prop.SystemConfigProperties;
 import cn.yiidii.jdx.config.prop.SystemConfigProperties.QLConfig;
+import cn.yiidii.jdx.model.dto.AdminNotifyEvent;
 import cn.yiidii.jdx.model.ex.BizException;
 import cn.yiidii.jdx.support.ITask;
 import cn.yiidii.jdx.util.JDXUtil;
@@ -79,6 +80,7 @@ public class JDTaskService implements ITask {
                 }).map(CheckCookieResult::getPtPin).collect(Collectors.toList());
                 List<String> ids = checkCookieResults.stream().filter(CheckCookieResult::isExpired).map(CheckCookieResult::get_id).collect(Collectors.toList());
                 try {
+                    // 禁用Cookie
                     qlService.disableEnv(qlConfig.getDisplayName(), ids);
                 } catch (Exception e) {
                     log.error("定时检查cookie时, 禁用环境变量发生异常, displayName: {}", qlConfig.getDisplayName());
@@ -99,13 +101,12 @@ public class JDTaskService implements ITask {
 
         String adminUid = jdUserConfigProperties.getAdminUid();
         if (CollUtil.isNotEmpty(result) && StrUtil.isNotBlank(adminUid)) {
-            String adminContent = result.stream().map(jo -> StrUtil.format("🐉节点：{}\r\n{}\r\n\r\n已自动禁用", jo.getString("displayName"), CollUtil.join(jo.getJSONArray("expiredPtPins"), "\r\n")))
-                    .collect(Collectors.joining("\r\n"));
-            WXPushUtil.send(jdUserConfigProperties.getAppToken(),
-                    Arrays.asList(adminUid),
-                    "Cookie失效通知",
-                    adminContent,
-                    "1");
+            String adminContent = result.stream().map(jo ->
+                    StrUtil.format("节点【{}】以下Cookie已失效，已自动禁用\r\n{}",
+                            jo.getString("displayName"),
+                            CollUtil.join(jo.getJSONArray("expiredPtPins"), "\r\n")))
+                    .collect(Collectors.joining("\r\n\r\n"));
+            SpringUtil.publishEvent(new AdminNotifyEvent("Cookie失效通知", adminContent));
         }
         return result;
     }
