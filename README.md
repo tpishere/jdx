@@ -82,3 +82,6 @@ docker run -d \
 docker stop jdx && docker rm jdx
 ```
 2. 根据最新版本号跑一个新的容器即可
+
+## 讨论群组
+[🔗 t.me/jdx_discuss](https://t.me/jdx_discuss)
