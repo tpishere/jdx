@@ -62,9 +62,8 @@ public class QLService implements ITask {
         // 获取存在的env, env存在就不更新备注
         String ptPin = JDXUtil.getPtPinFromCK(cookie);
         JSONObject existEnv = this.getExistCK(displayName, StrUtil.format("pt_pin={};", ptPin));
-        if (!existEnv.isEmpty()) {
-            remark = existEnv.getString("remarks");
-        }
+        remark = StrUtil.isBlank(remark) && !existEnv.isEmpty() ? existEnv.getString("remarks") : remark;
+
         // 保存并启用
         this.saveAndEnableEnv(displayName, "JD_COOKIE", cookie, remark);
     }
