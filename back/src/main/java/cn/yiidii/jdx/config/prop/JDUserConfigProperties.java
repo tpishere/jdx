@@ -86,22 +86,6 @@ public class JDUserConfigProperties implements InitializingBean, ITask {
         return this.getJdUsers().stream().filter(e -> e.getPtPin().equals(ptPin)).findFirst().orElse(null);
     }
 
-    public void bindWXPusherUid(String cookie, String wxPusherUid) {
-        String ptPin = JDXUtil.getPtPinFromCK(cookie);
-        if (StrUtil.isBlank(ptPin)) {
-            throw new BizException("Cookie格式不正确");
-        }
-        JDUserConfig jdUserConfig = this.getByPtPin(ptPin);
-        if (Objects.nonNull(jdUserConfig)) {
-            jdUserConfig.setWxPusherUid(wxPusherUid);
-        } else {
-            this.getJdUsers().add(new JDUserConfig(ptPin, wxPusherUid));
-        }
-        // 通知管理员
-        SpringUtil.publishEvent(new AdminNotifyEvent("绑定WxPusherUid通知",
-                StrUtil.format("【pt_pin】{}\r\n【UID】{}", ptPin, wxPusherUid)));
-    }
-
     @Override
     public void startTimerTask() {
         scheduleTaskUtil.startCron("SYS_timerPersistSystemConfig", () -> this.timerPersistJDUserConfig(), "0/30 * * * * ?");

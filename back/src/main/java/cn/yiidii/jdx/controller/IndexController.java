@@ -115,23 +115,4 @@ public class IndexController {
         return R.ok(jo);
     }
 
-    /**
-     * 绑定wxPusherUid
-     *
-     * @param paramJo 参数
-     * @return R
-     */
-    @PostMapping("bindWXPusher")
-    public R<?> bindWXPush(@RequestBody JSONObject paramJo) {
-        String cookie = paramJo.getString("cookie");
-        String wxPusherUid = paramJo.getString("wxPusherUid");
-        Assert.isTrue(StrUtil.isNotBlank(cookie), () -> {
-            throw new BizException("pt_pin不能为空");
-        });
-        Assert.isTrue(StrUtil.isNotBlank(wxPusherUid), () -> {
-            throw new BizException("wxPusherUid不能为空");
-        });
-        jdUserConfigProperties.bindWXPusherUid(cookie, wxPusherUid);
-        return R.ok(null, "绑定成功");
-    }
 }
