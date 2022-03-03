@@ -25,6 +25,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CountDownLatch;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -44,7 +45,6 @@ public class QLService implements ITask {
 
     private final static Map<String, String> QL_TOKEN_CACHE = new ConcurrentHashMap<>(16);
 
-    private final JdService jdService;
     private final SystemConfigProperties systemConfigProperties;
     private final ScheduleTaskUtil scheduleTaskUtil;
 
@@ -58,13 +58,15 @@ public class QLService implements ITask {
         // 随机一个节点
         QLConfig qlConfig = availableQlConfigs.get(RandomUtil.randomInt(availableQlConfigs.size()));
         // 处理备注 TODO
+        String ptPin = JDXUtil.getPtPinFromCK(cookie);
+        JSONObject existCK = this.getExistCK(qlConfig, ptPin);
 
         // 保存并启用
-        this.saveAndEnableEnv(qlConfig, "JD_COOKIE", cookie, "");
+        this.saveAndEnableEnv(qlConfig, "JD_COOKIE", cookie, existCK.getString("remarks"));
 
         // 生成动态二维码
         JSONObject param = new JSONObject();
-        param.put("ptPin", JDXUtil.getPtPinFromCK(cookie));
+        param.put("ptPin", ptPin);
         String dynamicQR = WXPushUtil.getDynamicQR(systemConfigProperties.getWxPusherAppToken(), param);
         JSONObject result = new JSONObject();
         result.put("dynamicWxPusherQRCode", dynamicQR);
@@ -104,6 +106,7 @@ public class QLService implements ITask {
             envJo.put("name", name);
             envJo.put("value", value);
             envJo.put("remarks", remark);
+            envJo.put("id", existEnv.getString("id"));
             try {
                 // 更新
                 this.updateEnv(qlConfig, envJo);
@@ -175,7 +178,7 @@ public class QLService implements ITask {
             }).collect(Collectors.toList());
         } catch (Exception e) {
             log.debug(StrUtil.format("连接青龙发生异常, e: {}", e));
-            throw new BizException("连接青龙发生异常, 请联系系统管理员");
+            throw new BizException("连接青龙发生异常, 请联系系统管理员" + displayName);
         }
     }
 
@@ -258,12 +261,12 @@ public class QLService implements ITask {
         }
     }
 
-    public String getQLToken(String displayName) {
+    public synchronized String getQLToken(String displayName) {
         QLConfig qlConfig = systemConfigProperties.getQLConfigByDisplayName(displayName);
         if (Objects.isNull(qlConfig)) {
             throw new BizException(StrUtil.format("青龙节点【{}】不存在", displayName));
         }
-        String token = QL_TOKEN_CACHE.get(displayName);
+        String token = QL_TOKEN_CACHE.get(qlConfig.getClientId());
         if (StrUtil.isNotBlank(token)) {
             return token;
         }
@@ -277,7 +280,7 @@ public class QLService implements ITask {
             Integer code = respJo.getInteger("code");
             if (code == HttpStatus.HTTP_OK) {
                 String token = respJo.getJSONObject("data").getString("token");
-                QL_TOKEN_CACHE.put(ql.getDisplayName(), token);
+                QL_TOKEN_CACHE.put(ql.getClientId(), token);
                 return token;
             }
         }
@@ -297,10 +300,22 @@ public class QLService implements ITask {
     private void refreshQLUsedCookieCount() {
         List<QLConfig> qlConfigs = systemConfigProperties.getQls();
         ThreadPoolTaskExecutor asyncExecutor = SpringUtil.getBean("asyncExecutor", ThreadPoolTaskExecutor.class);
+        CountDownLatch countDownLatch = new CountDownLatch(qlConfigs.size());
         qlConfigs.forEach(ql -> asyncExecutor.execute(() -> {
-            List<JSONObject> normalEnvs = this.searchEnv(ql, "JD_COOKIE", 0);
-            ql.setUsed(normalEnvs.size());
+            try {
+                List<JSONObject> normalEnvs = this.searchEnv(ql, "JD_COOKIE", 0);
+                ql.setUsed(normalEnvs.size());
+            } catch (Exception e) {
+                log.error(StrUtil.format("refreshQLUsedCookieCount err: {}", e));
+            } finally {
+                countDownLatch.countDown();
+            }
         }));
+        try {
+            countDownLatch.await();
+        } catch (InterruptedException e) {
+            log.error(StrUtil.format("refreshQLUsedCookieCount err wher countDownLatch await: {}", e));
+        }
     }
 
     /**

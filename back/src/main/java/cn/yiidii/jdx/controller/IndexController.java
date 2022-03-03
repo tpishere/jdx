@@ -67,23 +67,27 @@ public class IndexController {
             throw new BizException("验证码不能为空");
         });
 
-//        JdInfo jdInfo = jdService.login(mobile, code);
-//        log.info(StrUtil.format("{}获取了京东Cookie", DesensitizedUtil.mobilePhone(mobile)));
+        JdInfo jdInfo = jdService.login(mobile, code);
+        log.info(StrUtil.format("{}获取了京东Cookie", DesensitizedUtil.mobilePhone(mobile)));
 
-        JdInfo jdInfo = JdInfo.builder().cookie("pt_key=xxx7;pt_pin=xxx;").ptPin(JDXUtil.getPtPinFromCK("pt_key=xxx7;pt_pin=xxx;")).build();
+//        // 测试用
+//        String testCookie = "pt_key=xxx7;pt_pin=jd_xxx01;";
+//        String ptPin = JDXUtil.getPtPinFromCK(testCookie);
+//        JdInfo jdInfo = JdInfo.builder().cookie(testCookie).ptPin(ptPin).build();
+
         return R.ok(jdInfo, "获取cookie成功");
     }
 
     @PostMapping("/ql/submitCk")
-    public R<JdInfo> submitCk(@RequestBody JSONObject paramJo) throws Exception {
+    public R<JSONObject> submitCk(@RequestBody JSONObject paramJo) throws Exception {
         String cookie = paramJo.getString("cookie");
         Assert.isTrue(StrUtil.isNotBlank(cookie), () -> {
             throw new BizException("Cookie不能为空");
         });
 
-        qlService.submitCk(cookie);
+        JSONObject result = qlService.submitCk(cookie);
         log.info(StrUtil.format("ptPin: {}提交Cookie", JDXUtil.getPtPinFromCK(cookie)));
-        return R.ok(null, StrUtil.format("提交成功"));
+        return R.ok(result, StrUtil.format("提交成功"));
     }
 
     @GetMapping("info")
