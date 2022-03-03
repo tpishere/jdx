@@ -1,18 +1,15 @@
 <template>
   <div>
     <van-notice-bar
-      v-if="notice && noticeModel == 'TOP'"
-      left-icon="volume-o"
-      :text="notice"
-      mode="closeable"
+        v-if="notice && noticeModel == 'TOP'"
+        left-icon="volume-o"
+        :text="notice"
+        mode="closeable"
     />
 
     <!-- title -->
     <div>
-      <div
-        v-if="title"
-        style="text-align: center; margin: 40px 0 20px 0; font-size: 32px"
-      >
+      <div v-if="title" style="text-align: center; margin: 40px 0 20px 0; font-size: 32px">
         {{ title }}
       </div>
 
@@ -20,55 +17,47 @@
       <div v-if="notice && noticeModel == 'HTML'" v-html="notice"></div>
     </div>
 
-    <van-tabs v-model="active">
-      <van-tab title="获取CK" name="jd">
-        <JD @change-tab="changeActive" />
-      </van-tab>
-      <van-tab title="提交QL" name="submitQL">
-        <SubmitQL @change-tab="changeActive" />
-      </van-tab>
-      <van-tab title="绑定WxPusher" name="bindWxPusher">
-        <BindWxPusher @change-tab="changeActive" />
-      </van-tab>
-    </van-tabs>
+    <JD/>
   </div>
 </template>
 
 <script>
 import JD from "./JD";
-import BindWxPusher from "./BindWxPusher";
-import { baseInfo } from "@/api";
-import SubmitQL from "@/views/index/SubmitQL";
+import {baseInfo} from "@/api";
 
 export default {
   name: "Index",
-  components: { JD, SubmitQL, BindWxPusher },
+  components: {JD},
   data() {
     return {
-      active: "jd",
       title: "",
       notice: "",
       noticeModel: ""
     };
   },
-  mounted() {
+  created() {
     this.renderBase();
+    let tab = this.$route.query.tab
+    if (tab) {
+      this.active = tab
+    } else {
+      this.active = "jd"
+    }
+  },
+  watch: {
   },
   methods: {
-    renderBase: function() {
+    renderBase: function () {
       baseInfo()
-        .then(resp => {
-          this.title = resp.data.title;
-          this.notice = resp.data.notice;
-          this.noticeModel = resp.data.noticeModel;
-        })
-        .catch(err => {
-          console.log(err);
-        });
+          .then(resp => {
+            this.title = resp.data.title;
+            this.notice = resp.data.notice;
+            this.noticeModel = resp.data.noticeModel;
+          })
+          .catch(err => {
+            console.log(err);
+          });
     },
-    changeActive: function(tabName) {
-      this.active = tabName;
-    }
   }
 };
 </script>

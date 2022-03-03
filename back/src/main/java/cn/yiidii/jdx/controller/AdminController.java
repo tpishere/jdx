@@ -2,7 +2,6 @@ package cn.yiidii.jdx.controller;
 
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.spring.SpringUtil;
-import cn.yiidii.jdx.config.prop.JDUserConfigProperties;
 import cn.yiidii.jdx.config.prop.SystemConfigProperties;
 import cn.yiidii.jdx.config.prop.SystemConfigProperties.QLConfig;
 import cn.yiidii.jdx.model.R;
@@ -41,7 +40,6 @@ public class AdminController {
 
     private final AdminService adminService;
     private final SystemConfigProperties systemConfigProperties;
-    private final JDUserConfigProperties jdUserConfigProperties;
     private final JDTaskService jdTaskService;
     private final GithubVersionListener githubVersionListener;
 
@@ -76,8 +74,9 @@ public class AdminController {
         result.put("notice", systemConfigProperties.getNotice());
         result.put("username", systemConfigProperties.getUsername());
         result.put("password", systemConfigProperties.getPassword());
-        result.put("noticeModel", systemConfigProperties.getNoticeModel());
         result.put("checkCookieCron", systemConfigProperties.getCheckCookieCron());
+        result.put("appToken", systemConfigProperties.getWxPusherAppToken());
+        result.put("adminUid", systemConfigProperties.getWxPusherAdminUid());
         return R.ok(result);
     }
 
@@ -98,20 +97,10 @@ public class AdminController {
         return R.ok(websiteConfig, "修改成功");
     }
 
-    @GetMapping("wxPusher")
-    public R<?> getWxPusher() {
-        JSONObject jo = new JSONObject();
-        jo.put("appToken", jdUserConfigProperties.getAppToken());
-        jo.put("adminUid", jdUserConfigProperties.getAdminUid());
-        jo.put("wxPusherQrUrl", jdUserConfigProperties.getWxPusherQrUrl());
-        return R.ok(jo);
-    }
-
     @PutMapping("wxPusher")
     public R<?> updateWxPusher(@RequestBody JSONObject paramJo) {
-        jdUserConfigProperties.setAppToken(paramJo.getString("appToken"));
-        jdUserConfigProperties.setWxPusherQrUrl(paramJo.getString("wxPusherQrUrl"));
-        jdUserConfigProperties.setAdminUid(paramJo.getString("adminUid"));
+        systemConfigProperties.setWxPusherAppToken(paramJo.getString("appToken"));
+        systemConfigProperties.setWxPusherAdminUid(paramJo.getString("adminUid"));
         return R.ok(paramJo, "修改成功");
     }
 

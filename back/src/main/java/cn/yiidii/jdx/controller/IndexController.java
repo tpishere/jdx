@@ -3,7 +3,6 @@ package cn.yiidii.jdx.controller;
 import cn.hutool.core.util.DesensitizedUtil;
 import cn.hutool.core.util.PhoneUtil;
 import cn.hutool.core.util.StrUtil;
-import cn.yiidii.jdx.config.prop.JDUserConfigProperties;
 import cn.yiidii.jdx.config.prop.SystemConfigProperties;
 import cn.yiidii.jdx.model.R;
 import cn.yiidii.jdx.model.dto.JdInfo;
@@ -43,7 +42,6 @@ public class IndexController {
     private final JdService jdService;
     private final QLService qlService;
     private final SystemConfigProperties systemConfigProperties;
-    private final JDUserConfigProperties jdUserConfigProperties;
 
     @GetMapping("/jd/smsCode")
     public R<JdInfo> qrCode(@RequestParam @NotNull(message = "请填写手机号") String mobile) throws Exception {
@@ -69,26 +67,23 @@ public class IndexController {
             throw new BizException("验证码不能为空");
         });
 
-        JdInfo jdInfo = jdService.login(mobile, code);
-        log.info(StrUtil.format("{}获取了京东Cookie", DesensitizedUtil.mobilePhone(mobile)));
+//        JdInfo jdInfo = jdService.login(mobile, code);
+//        log.info(StrUtil.format("{}获取了京东Cookie", DesensitizedUtil.mobilePhone(mobile)));
+
+        JdInfo jdInfo = JdInfo.builder().cookie("pt_key=xxx7;pt_pin=xxx;").ptPin(JDXUtil.getPtPinFromCK("pt_key=xxx7;pt_pin=xxx;")).build();
         return R.ok(jdInfo, "获取cookie成功");
     }
 
     @PostMapping("/ql/submitCk")
     public R<JdInfo> submitCk(@RequestBody JSONObject paramJo) throws Exception {
         String cookie = paramJo.getString("cookie");
-        String displayName = paramJo.getString("displayName");
-        String remark = paramJo.getString("remark");
         Assert.isTrue(StrUtil.isNotBlank(cookie), () -> {
             throw new BizException("Cookie不能为空");
         });
-        Assert.isTrue(StrUtil.isNotBlank(displayName), () -> {
-            throw new BizException("请选择QL节点");
-        });
 
-        qlService.submitCk(displayName, cookie, remark);
-        log.info(StrUtil.format("ptPin:{}提交Cookie至【{}】成功", JDXUtil.getPtPinFromCK(cookie), displayName));
-        return R.ok(null, StrUtil.format("提交至【{}】成功", displayName));
+        qlService.submitCk(cookie);
+        log.info(StrUtil.format("ptPin: {}提交Cookie", JDXUtil.getPtPinFromCK(cookie)));
+        return R.ok(null, StrUtil.format("提交成功"));
     }
 
     @GetMapping("info")
@@ -96,7 +91,6 @@ public class IndexController {
         JSONObject jo = new JSONObject();
         jo.put("title", systemConfigProperties.getTitle());
         jo.put("notice", systemConfigProperties.getNotice());
-        jo.put("noticeModel", systemConfigProperties.getNoticeModel());
         List<JSONObject> qls = systemConfigProperties.getQls().stream().map(e -> {
             JSONObject j = JSON.parseObject(JSON.toJSONString(e));
             j.remove("url");
@@ -110,8 +104,6 @@ public class IndexController {
             return j;
         }).collect(Collectors.toList());
         jo.put("qls", qls);
-
-        jo.put("wxPusherQrUrl", jdUserConfigProperties.getWxPusherQrUrl());
         return R.ok(jo);
     }
 

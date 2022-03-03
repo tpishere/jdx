@@ -1,6 +1,7 @@
 package cn.yiidii.jdx.service;
 
 import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.util.RandomUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import cn.hutool.http.HttpRequest;
@@ -8,21 +9,26 @@ import cn.hutool.http.HttpResponse;
 import cn.hutool.http.HttpStatus;
 import cn.yiidii.jdx.config.prop.SystemConfigProperties;
 import cn.yiidii.jdx.config.prop.SystemConfigProperties.QLConfig;
-import cn.yiidii.jdx.model.dto.AdminNotifyEvent;
 import cn.yiidii.jdx.model.ex.BizException;
 import cn.yiidii.jdx.support.ITask;
 import cn.yiidii.jdx.util.JDXUtil;
 import cn.yiidii.jdx.util.ScheduleTaskUtil;
+import cn.yiidii.jdx.util.WXPushUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 
 /**
@@ -38,51 +44,38 @@ public class QLService implements ITask {
 
     private final static Map<String, String> QL_TOKEN_CACHE = new ConcurrentHashMap<>(16);
 
-    public final JdService jdService;
-    public final SystemConfigProperties systemConfigProperties;
+    private final JdService jdService;
+    private final SystemConfigProperties systemConfigProperties;
     private final ScheduleTaskUtil scheduleTaskUtil;
 
-    public void submitCk(String displayName, String cookie, String remark) throws Exception {
-        // 校验
-        QLConfig qlConfig = systemConfigProperties.getQLConfigByDisplayName(displayName);
-        if (Objects.isNull(qlConfig)) {
-            throw new BizException(StrUtil.format("青龙节点【{}】不存在", displayName));
+    public JSONObject submitCk(String cookie) throws Exception {
+        // 同步下数据
+        this.refreshQLUsedCookieCount();
+        List<QLConfig> availableQlConfigs = systemConfigProperties.getQls().stream().filter(ql -> ql.getDisabled() == 0 && ql.getUsed() < ql.getMax()).collect(Collectors.toList());
+        if (CollUtil.isEmpty(availableQlConfigs)) {
+            throw new BizException("无可用节点");
         }
-        // 禁用校验
-        if (qlConfig.getDisabled() == 1) {
-            throw new BizException(StrUtil.format("节点【{}】已禁用", displayName));
-        }
-        // 最大数量校验
-        Integer used = qlConfig.getUsed();
-        List<JSONObject> normalEnvs = this.searchEnv(displayName, "JD_COOKIE", 0);
-        if (normalEnvs.size() >= qlConfig.getMax()) {
-            qlConfig.setUsed(used);
-            throw new BizException(StrUtil.format("节点【{}】车位已满", displayName));
-        }
-        qlConfig.setUsed(normalEnvs.size());
-
-        // 获取存在的env, env存在就不更新备注
-        String ptPin = JDXUtil.getPtPinFromCK(cookie);
-        JSONObject existEnv = this.getExistCK(displayName, StrUtil.format("pt_pin={};", ptPin));
-        remark = StrUtil.isBlank(remark) && !existEnv.isEmpty() ? existEnv.getString("remarks") : remark;
+        // 随机一个节点
+        QLConfig qlConfig = availableQlConfigs.get(RandomUtil.randomInt(availableQlConfigs.size()));
+        // 处理备注 TODO
 
         // 保存并启用
-        this.saveAndEnableEnv(displayName, "JD_COOKIE", cookie, remark);
+        this.saveAndEnableEnv(qlConfig, "JD_COOKIE", cookie, "");
 
-        // 通知管理员
-        SpringUtil.publishEvent(new AdminNotifyEvent(
-                StrUtil.format("节点【{}】{}Cookie通知", displayName, existEnv.isEmpty() ? "新增" : "更新"),
-                StrUtil.format("【节点】{}\r\n【pt_pin】{}\r\n【备注】{}", displayName, ptPin, remark)));
+        // 生成动态二维码
+        JSONObject param = new JSONObject();
+        param.put("ptPin", JDXUtil.getPtPinFromCK(cookie));
+        String dynamicQR = WXPushUtil.getDynamicQR(systemConfigProperties.getWxPusherAppToken(), param);
+        JSONObject result = new JSONObject();
+        result.put("dynamicWxPusherQRCode", dynamicQR);
+        return result;
     }
 
-    public void saveAndEnableEnv(String displayName, String name, String value, String remark) {
-        QLConfig qlConfig = systemConfigProperties.getQLConfigByDisplayName(displayName);
-        if (Objects.isNull(qlConfig)) {
-            throw new BizException(StrUtil.format("青龙节点【{}】不存在", displayName));
-        }
+    public void saveAndEnableEnv(QLConfig qlConfig, String name, String value, String remark) {
+        String displayName = qlConfig.getDisplayName();
         // 获取存在的env
         String ptPin = JDXUtil.getPtPinFromCK(value);
-        JSONObject existEnv = this.getExistCK(displayName, StrUtil.format("pt_pin={};", ptPin));
+        JSONObject existEnv = this.getExistCK(qlConfig, StrUtil.format("pt_pin={};", ptPin));
 
         // 推送青龙
         if (existEnv.isEmpty()) {
@@ -111,38 +104,12 @@ public class QLService implements ITask {
             envJo.put("name", name);
             envJo.put("value", value);
             envJo.put("remarks", remark);
-            envJo.put("_id", existEnv.getString("id"));
             try {
-                // 第一次，用_id
-                log.debug(StrUtil.format("[青龙 - {}] 第一次尝试更新环境变量, 参数: {}", displayName, envJo.toJSONString()));
-                HttpResponse response = HttpRequest.put(qlConfig.getUrl().concat("open/envs"))
-                        .bearerAuth(this.getQLToken(displayName))
-                        .body(envJo.toJSONString())
-                        .execute();
-                log.debug(StrUtil.format("[青龙 - {}] 更新环境变量, 状态码: {}, 响应: {}", displayName, response.getStatus(), response.body()));
-
-                // 如果第一次异常，第二次用id
-                if (response.getStatus() == HttpStatus.HTTP_INTERNAL_ERROR) {
-                    envJo.remove("_id");
-                    envJo.put("id", existEnv.getString("id"));
-                    log.debug(StrUtil.format("[青龙 - {}] 第二次尝试更新环境变量, 参数: {}", displayName, envJo.toJSONString()));
-                    response = HttpRequest.put(qlConfig.getUrl().concat("open/envs"))
-                            .bearerAuth(this.getQLToken(displayName))
-                            .body(envJo.toJSONString())
-                            .execute();
-                    log.debug(StrUtil.format("[青龙 - {}] 第二次尝试更新环境变量, 状态码: {}, 响应: {}", displayName, response.getStatus(), response.body()));
-                }
-
+                // 更新
+                this.updateEnv(qlConfig, envJo);
                 // 启用
                 if (existEnv.getInteger("status") == 1) {
-                    JSONArray paramJa = new JSONArray();
-                    paramJa.add(existEnv.getString("id"));
-                    log.debug(StrUtil.format("[青龙 - {}] 启用环境变量, 参数: {}", displayName, paramJa.toJSONString()));
-                    response = HttpRequest.put(qlConfig.getUrl().concat("open/envs/enable"))
-                            .bearerAuth(this.getQLToken(displayName))
-                            .body(paramJa.toJSONString())
-                            .execute();
-                    log.debug(StrUtil.format("[青龙 - {}] 启用环境变量, 响应: {}", displayName, response.body()));
+                    this.enableEnv(qlConfig, Arrays.asList(existEnv.getString("id")));
                 }
             } catch (Exception e) {
                 log.error(StrUtil.format("[青龙 - {}] 更新并启用环境变量发生异常: {}", displayName, e));
@@ -152,24 +119,39 @@ public class QLService implements ITask {
 
     }
 
+    public void bindWxPushUidToRemark(String ptPin, String uid) {
+        List<QLConfig> qlConfigs = systemConfigProperties.getQls();
+        qlConfigs.forEach(qlConfig -> {
+            List<JSONObject> envs = this.searchEnv(qlConfig, StrUtil.format("pt_pin={}", ptPin));
+            if (CollUtil.isEmpty(envs)) {
+                return;
+            }
+            envs.forEach(env -> {
+                String remark = env.getString("remarks");
+                List<String> newRemarkSplit = StrUtil.split(remark, "@@").stream().filter(e -> !StrUtil.startWith(e, "UID_") && StrUtil.isNotBlank(e)).collect(Collectors.toList());
+                newRemarkSplit.add(uid);
+                String newRemark = CollUtil.join(newRemarkSplit, "@@");
+                env.put("remarks", newRemark);
+                this.updateEnv(qlConfig, env);
+            });
+        });
+    }
+
     /**
      * 搜索环境变量
      *
-     * @param displayName
-     * @param searchValue
+     * @param qlConfig    qlConfig
+     * @param searchValue searchValue
      * @param status      0：正常；1：禁用
      * @return
      */
-    public List<JSONObject> searchEnv(String displayName, String searchValue, Integer status) {
-        List<JSONObject> envs = this.searchEnv(displayName, searchValue);
+    public List<JSONObject> searchEnv(QLConfig qlConfig, String searchValue, Integer status) {
+        List<JSONObject> envs = this.searchEnv(qlConfig, searchValue);
         return envs.stream().filter(e -> e.getInteger("status").compareTo(status) == 0).collect(Collectors.toList());
     }
 
-    public List<JSONObject> searchEnv(String displayName, String searchValue) {
-        QLConfig qlConfig = systemConfigProperties.getQLConfigByDisplayName(displayName);
-        if (Objects.isNull(qlConfig)) {
-            throw new BizException(StrUtil.format("青龙节点【{}】不存在", displayName));
-        }
+    public List<JSONObject> searchEnv(QLConfig qlConfig, String searchValue) {
+        String displayName = qlConfig.getDisplayName();
         try {
             HttpResponse response = HttpRequest.get(StrUtil.format("{}open/envs?searchValue={}", qlConfig.getUrl(), searchValue))
                     .bearerAuth(this.getQLToken(displayName))
@@ -197,14 +179,72 @@ public class QLService implements ITask {
         }
     }
 
-    public void disableEnv(String displayName, List<String> ids) {
+    public List<JSONObject> searchEnvFromAllNode(String searchValue) {
+        List<QLConfig> qlConfigs = systemConfigProperties.getQls();
+        ThreadPoolTaskExecutor asyncExecutor = SpringUtil.getBean("asyncExecutor", ThreadPoolTaskExecutor.class);
+        List<CompletableFuture<List<JSONObject>>> futures =
+                qlConfigs.stream().map(ql -> CompletableFuture.supplyAsync(() -> this.searchEnv(ql, searchValue), asyncExecutor)).collect(Collectors.toList());
+        CompletableFuture<Void> allFutures = CompletableFuture.allOf(futures.toArray(new CompletableFuture[futures.size()]));
+        CompletableFuture<List<List<JSONObject>>> finalResults = allFutures.thenApply(v -> futures.stream().map(CompletableFuture::join).collect(Collectors.toList()));
+        try {
+            return finalResults.get().stream().flatMap(Collection::stream).collect(Collectors.toList());
+        } catch (Exception e) {
+            return new ArrayList<>();
+        }
+    }
+
+    public void updateEnv(QLConfig qlConfig, JSONObject envJo) {
+        envJo.remove("status");
+        String id = envJo.getString("id");
+        String displayName = qlConfig.getDisplayName();
+        // 第一次，用_id
+        envJo.put("_id", id);
+        log.debug(StrUtil.format("[青龙 - {}] 第一次尝试更新环境变量, 参数: {}", displayName, envJo.toJSONString()));
+        HttpResponse response = HttpRequest.put(qlConfig.getUrl().concat("open/envs"))
+                .bearerAuth(this.getQLToken(displayName))
+                .body(envJo.toJSONString())
+                .execute();
+        log.debug(StrUtil.format("[青龙 - {}] 更新环境变量, 状态码: {}, 响应: {}", displayName, response.getStatus(), response.body()));
+
+        // 如果第一次异常，第二次用id
+        if (response.getStatus() == HttpStatus.HTTP_INTERNAL_ERROR) {
+            envJo.remove("_id");
+            envJo.put("id", id);
+            log.debug(StrUtil.format("[青龙 - {}] 第二次尝试更新环境变量, 参数: {}", displayName, envJo.toJSONString()));
+            response = HttpRequest.put(qlConfig.getUrl().concat("open/envs"))
+                    .bearerAuth(this.getQLToken(displayName))
+                    .body(envJo.toJSONString())
+                    .execute();
+            log.debug(StrUtil.format("[青龙 - {}] 第二次尝试更新环境变量, 状态码: {}, 响应: {}", displayName, response.getStatus(), response.body()));
+        }
+        if (response.getStatus() == HttpStatus.HTTP_INTERNAL_ERROR) {
+            throw new BizException("更新失败，请联系系统管理员");
+        }
+    }
+
+    public void enableEnv(QLConfig qlConfig, List<String> ids) {
         if (CollUtil.isEmpty(ids)) {
             return;
         }
-        QLConfig qlConfig = systemConfigProperties.getQLConfigByDisplayName(displayName);
-        if (Objects.isNull(qlConfig)) {
-            throw new BizException(StrUtil.format("青龙节点【{}】不存在", displayName));
+        String displayName = qlConfig.getDisplayName();
+        try {
+            log.debug(StrUtil.format("[青龙 - {}] 启用环境变量, 参数: {}", displayName, JSON.toJSONString(ids)));
+            HttpResponse response = HttpRequest.put(qlConfig.getUrl().concat("open/envs/enable"))
+                    .bearerAuth(this.getQLToken(displayName))
+                    .body(JSON.toJSONString(ids))
+                    .execute();
+            log.debug(StrUtil.format("[青龙 - {}] 启用环境变量, 响应: {}", displayName, response.body()));
+        } catch (Exception e) {
+            log.debug(StrUtil.format("连接青龙发生异常, e: {}", e));
+            throw new BizException("连接青龙发生异常, 请联系系统管理员");
         }
+    }
+
+    public void disableEnv(QLConfig qlConfig, List<String> ids) {
+        if (CollUtil.isEmpty(ids)) {
+            return;
+        }
+        String displayName = qlConfig.getDisplayName();
         try {
             log.debug(StrUtil.format("[青龙 - {}] 禁用环境变量, 参数: {}", displayName, JSON.toJSONString(ids)));
             HttpResponse response = HttpRequest.put(qlConfig.getUrl().concat("open/envs/disable"))
@@ -246,7 +286,7 @@ public class QLService implements ITask {
 
     @Override
     public void startTimerTask() {
-        scheduleTaskUtil.startCron("QL_timerRefreshToken", () -> this.timerRefreshToken(), "0 0/1 * * * ?");
+        scheduleTaskUtil.startCron("QL_timerRefreshToken", () -> this.timerRefreshToken(), "0 0 0/1 * * ?");
     }
 
     private void timerRefreshToken() {
@@ -254,17 +294,24 @@ public class QLService implements ITask {
         qlConfigs.forEach(this::refreshToken);
     }
 
+    private void refreshQLUsedCookieCount() {
+        List<QLConfig> qlConfigs = systemConfigProperties.getQls();
+        ThreadPoolTaskExecutor asyncExecutor = SpringUtil.getBean("asyncExecutor", ThreadPoolTaskExecutor.class);
+        qlConfigs.forEach(ql -> asyncExecutor.execute(() -> {
+            List<JSONObject> normalEnvs = this.searchEnv(ql, "JD_COOKIE", 0);
+            ql.setUsed(normalEnvs.size());
+        }));
+    }
+
     /**
      * 获取存在的CK
      *
-     * @param displayName displayName
-     * @param cookie      cookie
      * @return JSONObject
      */
-    private JSONObject getExistCK(String displayName, String cookie) {
-        log.debug(StrUtil.format("[青龙 - {}], 获取存在的Cookie: {}", displayName, cookie));
+    private JSONObject getExistCK(QLConfig qlConfig, String ptPin) {
+        log.debug(StrUtil.format("[青龙 - {}], 获取存在的Cookie: {}", qlConfig.getDisplayName(), ptPin));
         JSONObject result;
-        List<JSONObject> envs = this.searchEnv(displayName, cookie);
+        List<JSONObject> envs = this.searchEnv(qlConfig, ptPin);
         if (envs.size() == 0) {
             result = new JSONObject();
         } else if (envs.size() == 1) {
@@ -280,7 +327,7 @@ public class QLService implements ITask {
                 result = new JSONObject();
             }
         }
-        log.debug(StrUtil.format("[青龙 - {}], 获取存在的Cookie: {}, 最终返回结果: {}", displayName, cookie, result.toJSONString()));
+        log.debug(StrUtil.format("[青龙 - {}], 获取存在的Cookie: {}, 最终返回结果: {}", qlConfig.getDisplayName(), ptPin, result.toJSONString()));
         return result;
     }
 }

@@ -1,7 +1,7 @@
 package cn.yiidii.jdx.support;
 
 import cn.hutool.core.util.StrUtil;
-import cn.yiidii.jdx.config.prop.JDUserConfigProperties;
+import cn.yiidii.jdx.config.prop.SystemConfigProperties;
 import cn.yiidii.jdx.model.dto.AdminNotifyEvent;
 import cn.yiidii.jdx.util.IdUtil;
 import cn.yiidii.jdx.util.WXPushUtil;
@@ -25,14 +25,14 @@ public class AdminNotifyEventListener implements ApplicationListener<AdminNotify
 
     private static final String PREFIX = "adminNotify";
 
-    private final JDUserConfigProperties jdUserConfigProperties;
+    private final SystemConfigProperties systemConfigProperties;
 
     @Override
     @Async("asyncExecutor")
     public void onApplicationEvent(AdminNotifyEvent event) {
         Thread.currentThread().setName(String.format(Thread.currentThread().getName(), IdUtil.randomSnowflakeId(PREFIX) + "_"));
-        WXPushUtil.send(jdUserConfigProperties.getAppToken(),
-                Arrays.asList(jdUserConfigProperties.getAdminUid()),
+        WXPushUtil.send(systemConfigProperties.getWxPusherAppToken(),
+                Arrays.asList(systemConfigProperties.getWxPusherAdminUid()),
                 event.getTitle(),
                 event.getContent(),
                 "1");

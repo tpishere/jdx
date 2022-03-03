@@ -3,8 +3,6 @@ package cn.yiidii.jdx.service;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.spring.SpringUtil;
-import cn.yiidii.jdx.config.prop.JDUserConfigProperties;
-import cn.yiidii.jdx.config.prop.JDUserConfigProperties.JDUserConfig;
 import cn.yiidii.jdx.config.prop.SystemConfigProperties;
 import cn.yiidii.jdx.config.prop.SystemConfigProperties.QLConfig;
 import cn.yiidii.jdx.model.dto.AdminNotifyEvent;
@@ -39,7 +37,6 @@ import org.springframework.stereotype.Service;
 public class JDTaskService implements ITask {
 
     private final SystemConfigProperties systemConfigProperties;
-    private final JDUserConfigProperties jdUserConfigProperties;
     private final QLService qlService;
     private final ScheduleTaskUtil scheduleTaskUtil;
 
@@ -49,7 +46,7 @@ public class JDTaskService implements ITask {
         ThreadPoolTaskExecutor asyncExecutor = SpringUtil.getBean("asyncExecutor", ThreadPoolTaskExecutor.class);
         List<JSONObject> result = new ArrayList<>(16);
         for (QLConfig qlConfig : qlConfigs) {
-            List<JSONObject> envs = qlService.searchEnv(qlConfig.getDisplayName(), "JD_COOKIE")
+            List<JSONObject> envs = qlService.searchEnv(qlConfig, "JD_COOKIE")
                     .stream().filter(e -> e.getInteger("status") == 0).collect(Collectors.toList());
             // 执行所有ck
             List<CompletableFuture<CheckCookieResult>> completableFutures = envs.stream().map(env -> CompletableFuture.supplyAsync(() -> {
@@ -57,6 +54,7 @@ public class JDTaskService implements ITask {
                 Thread.currentThread().setName(StrUtil.format("checkCookie_{}", JDXUtil.getPtPinFromCK(value)));
                 CheckCookieResult checkCookieResult = CheckJDCKUtil.checkCookie(value);
                 checkCookieResult.set_id(env.getString("id"));
+                checkCookieResult.setSource(env);
                 return checkCookieResult;
             }, asyncExecutor)).collect(Collectors.toList());
             // 等待所有任务执行完成
@@ -67,13 +65,13 @@ public class JDTaskService implements ITask {
                 List<String> expiredPtPins = checkCookieResults.stream().filter(CheckCookieResult::isExpired).peek(r -> {
                     // 通知到微信
                     String ptPin = r.getPtPin();
-                    JDUserConfig userConfig = jdUserConfigProperties.getByPtPin(ptPin);
-                    if (Objects.isNull(userConfig)) {
+                    String remarks = r.getSource().getString("remarks");
+                    String uid = JDXUtil.getUidFromRemark(remarks);
+                    if (StrUtil.isBlank(uid)) {
                         return;
                     }
-                    String wxPusherUid = userConfig.getWxPusherUid();
-                    WXPushUtil.send(jdUserConfigProperties.getAppToken(),
-                            Arrays.asList(wxPusherUid),
+                    WXPushUtil.send(systemConfigProperties.getWxPusherAppToken(),
+                            Arrays.asList(uid),
                             "Cookie失效通知",
                             StrUtil.format("{}, {}", r.getPtPin(), r.getRemark()),
                             "1");
@@ -81,7 +79,7 @@ public class JDTaskService implements ITask {
                 List<String> ids = checkCookieResults.stream().filter(CheckCookieResult::isExpired).map(CheckCookieResult::get_id).collect(Collectors.toList());
                 try {
                     // 禁用Cookie
-                    qlService.disableEnv(qlConfig.getDisplayName(), ids);
+                    qlService.disableEnv(qlConfig, ids);
                 } catch (Exception e) {
                     log.error("定时检查cookie时, 禁用环境变量发生异常, displayName: {}", qlConfig.getDisplayName());
                 }
@@ -99,7 +97,7 @@ public class JDTaskService implements ITask {
 
         }
 
-        String adminUid = jdUserConfigProperties.getAdminUid();
+        String adminUid = systemConfigProperties.getWxPusherAdminUid();
         if (CollUtil.isNotEmpty(result) && StrUtil.isNotBlank(adminUid)) {
             String adminContent = result.stream().map(jo ->
                     StrUtil.format("节点【{}】以下Cookie已失效，已自动禁用\r\n{}",

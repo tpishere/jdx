@@ -210,6 +210,8 @@ public class CheckJDCKUtil {
     @Accessors(chain = true)
     public static class CheckCookieResult {
 
+        private JSONObject source;
+
         private String _id;
         private String ptPin;
         private String nickName;
