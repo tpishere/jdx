@@ -95,19 +95,11 @@ public class IndexController {
         JSONObject jo = new JSONObject();
         jo.put("title", systemConfigProperties.getTitle());
         jo.put("notice", systemConfigProperties.getNotice());
-        List<JSONObject> qls = systemConfigProperties.getQls().stream().map(e -> {
-            JSONObject j = JSON.parseObject(JSON.toJSONString(e));
-            j.remove("url");
-            j.remove("clientId");
-            j.remove("clientSecret");
-            String desc = e.getDisabled() == 1 ? "（已禁用）" : e.getUsed() >= e.getMax() ? "（车位已满）" : "";
-            if (e.getUsed() >= e.getMax()) {
-                j.put("disabled", 1);
-            }
-            j.put("displayNameWithDesc", e.getDisplayName() + desc);
-            return j;
-        }).collect(Collectors.toList());
-        jo.put("qls", qls);
+        jo.put("bottomNotice", systemConfigProperties.getIndexBottomNotice());
+        jo.put("remain", systemConfigProperties.getQls().stream()
+                .filter(ql -> ql.getDisabled() == 0 && ql.getUsed() < ql.getMax())
+                .map(ql -> ql.getMax() - ql.getUsed())
+                .reduce((a, b) -> a + b));
         return R.ok(jo);
     }
 

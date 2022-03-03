@@ -305,6 +305,9 @@ public class QLService implements ITask {
             try {
                 List<JSONObject> normalEnvs = this.searchEnv(ql, "JD_COOKIE", 0);
                 ql.setUsed(normalEnvs.size());
+                if (ql.getUsed() >= ql.getMax()) {
+                    ql.setDisabled(1);
+                }
             } catch (Exception e) {
                 log.error(StrUtil.format("refreshQLUsedCookieCount err: {}", e));
             } finally {
