@@ -52,7 +52,7 @@ docker run -d \
 参考[ccwav/QLScript2](https://github.com/ccwav/QLScript2) 即可
 
 ## 财富岛api
-`http://ip:port/cfd`
+`http://ip:port/api/cfd`
 
 ## 🥂 更新说明
 1. 停止并删除容器
