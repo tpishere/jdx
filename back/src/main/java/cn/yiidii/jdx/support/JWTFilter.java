@@ -40,7 +40,8 @@ public class JWTFilter extends OncePerRequestFilter {
                     "/bindWXPusher",
                     "/oauth/**",
                     "/auth/**",
-                    "/third/**"
+                    "/third/**",
+                    "/cfd"
             );
 
     private static final AntPathMatcher PATH_MATCHER = new AntPathMatcher();

@@ -4,17 +4,18 @@ import cn.hutool.core.util.DesensitizedUtil;
 import cn.hutool.core.util.PhoneUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.yiidii.jdx.config.prop.SystemConfigProperties;
+import cn.yiidii.jdx.config.prop.SystemConfigProperties.QLConfig;
 import cn.yiidii.jdx.model.R;
 import cn.yiidii.jdx.model.dto.JdInfo;
 import cn.yiidii.jdx.model.ex.BizException;
 import cn.yiidii.jdx.service.JdService;
 import cn.yiidii.jdx.service.QLService;
 import cn.yiidii.jdx.util.JDXUtil;
-import com.alibaba.fastjson.JSON;
+import cn.yiidii.jdx.util.jd.JDTaskUtil;
 import com.alibaba.fastjson.JSONObject;
 import java.util.List;
-import java.util.stream.Collectors;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Pattern;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.Assert;
@@ -103,4 +104,22 @@ public class IndexController {
         return R.ok(jo);
     }
 
+    @GetMapping("cfd")
+    public Object getCfdUrl(@RequestParam(required = false) String type) {
+        List<QLConfig> qls = systemConfigProperties.getQls();
+        for (QLConfig qlConfig : qls) {
+            List<JSONObject> envs = qlService.searchEnv(qlConfig, "JD_COOKIE", 0);
+            for (JSONObject env : envs) {
+                String cookie = env.getString("value");
+                String cfdUrl = JDTaskUtil.getCfdUrl(cookie);
+                if (StrUtil.isNotBlank(cfdUrl)) {
+                    if (StrUtil.equals(type, "json")) {
+                        return R.ok(cfdUrl);
+                    }
+                    return cfdUrl;
+                }
+            }
+        }
+        throw new BizException("暂时无法获取");
+    }
 }

@@ -72,6 +72,7 @@ public class AdminController {
         JSONObject result = new JSONObject();
         result.put("title", systemConfigProperties.getTitle());
         result.put("notice", systemConfigProperties.getNotice());
+        result.put("bottomNotice", systemConfigProperties.getIndexBottomNotice());
         result.put("username", systemConfigProperties.getUsername());
         result.put("password", systemConfigProperties.getPassword());
         result.put("checkCookieCron", systemConfigProperties.getCheckCookieCron());

@@ -78,7 +78,7 @@
     </div>
 
     <van-dialog v-model="wxPusher.show" title="扫码关注一对一" show-cancel-button>
-      <img :src="wxPusher.url" width="100%"/>
+      <img :src="wxPusher.qr" width="100%"/>
       <div style="padding: 4px 32px;text-align: center">扫描完成后请在公众号好关注是否已经完成绑定</div>
     </van-dialog>
   </div>
@@ -92,14 +92,14 @@ export default {
       expireTime: 0,
       haveCookie: false,
       form: {
-        mobile: "15622202020",
-        code: "1234"
+        mobile: "15622225555",
+        code: "2323"
       },
       cookieForm: {
         cookie: ''
       },
       wxPusher: {
-        url: '',
+        qr: '',
         show: false
       }
     };
@@ -113,8 +113,6 @@ export default {
           .then(resp => {
             this.title = resp.data.title;
             this.notice = resp.data.notice;
-            this.noticeModel = resp.data.noticeModel;
-            this.wxPusher.url = resp.data.wxPusherQrUrl
           })
           .catch(err => {
             console.log(err);
@@ -202,8 +200,8 @@ export default {
       this.ifShowBindWxPusher()
     },
     doSubmitCk: function () {
-      submitCk(this.cookieForm).then(() => {
-        this.cookieForm.cookie = ""
+      submitCk(this.cookieForm).then((resp) => {
+        this.wxPusher.qr = resp.data.dynamicWxPusherQRCode
       })
     }
   }

@@ -1,7 +1,7 @@
 <template>
   <div>
     <van-notice-bar
-        v-if="notice && noticeModel == 'TOP'"
+        v-if="notice"
         left-icon="volume-o"
         :text="notice"
         mode="closeable"
@@ -12,12 +12,17 @@
       <div v-if="title" style="text-align: center; margin: 40px 0 20px 0; font-size: 32px">
         {{ title }}
       </div>
-
-      <!-- sub title -->
-      <div v-if="notice && noticeModel == 'HTML'" v-html="notice"></div>
     </div>
 
     <JD/>
+
+    <div style="text-align: center">
+      <van-tag size="medium" type="primary">剩余车位：{{remain}}</van-tag>
+    </div>
+
+    <div style="padding: 16px 8px ">
+      {{ bottomNotice }}
+    </div>
   </div>
 </template>
 
@@ -32,7 +37,8 @@ export default {
     return {
       title: "",
       notice: "",
-      noticeModel: ""
+      bottomNotice: "",
+      remain: 0
     };
   },
   created() {
@@ -44,15 +50,15 @@ export default {
       this.active = "jd"
     }
   },
-  watch: {
-  },
+  watch: {},
   methods: {
     renderBase: function () {
       baseInfo()
           .then(resp => {
             this.title = resp.data.title;
             this.notice = resp.data.notice;
-            this.noticeModel = resp.data.noticeModel;
+            this.remain = resp.data.remain
+            this.bottomNotice = resp.data.bottomNotice
           })
           .catch(err => {
             console.log(err);

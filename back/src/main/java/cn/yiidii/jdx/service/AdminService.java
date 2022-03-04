@@ -83,10 +83,12 @@ public class AdminService {
     public JSONObject updateWebsiteConfig(JSONObject paramJo) {
         String title = paramJo.getString("title");
         String notice = paramJo.getString("notice");
+        String bottomNotice = paramJo.getString("bottomNotice");
 
         JSONObject result = new JSONObject();
         result.put("title", systemConfigProperties.getTitle());
         result.put("notice", systemConfigProperties.getNotice());
+        result.put("notice", systemConfigProperties.getIndexBottomNotice());
         if (StrUtil.isNotBlank(title)) {
             systemConfigProperties.setTitle(title);
             result.put("title", title);
@@ -94,6 +96,10 @@ public class AdminService {
         if (StrUtil.isNotBlank(notice)) {
             systemConfigProperties.setNotice(notice);
             result.put("notice", notice);
+        }
+        if (StrUtil.isNotBlank(bottomNotice)) {
+            systemConfigProperties.setIndexBottomNotice(bottomNotice);
+            result.put("bottomNotice", bottomNotice);
         }
         log.debug(StrUtil.format("[admin] 更新网站配置: {}", result.toJSONString()));
         return result;

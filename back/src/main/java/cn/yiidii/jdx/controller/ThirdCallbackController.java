@@ -6,7 +6,9 @@ import cn.yiidii.jdx.config.prop.SystemConfigProperties;
 import cn.yiidii.jdx.model.R;
 import cn.yiidii.jdx.model.dto.AdminNotifyEvent;
 import cn.yiidii.jdx.service.QLService;
+import cn.yiidii.jdx.util.WXPushUtil;
 import com.alibaba.fastjson.JSONObject;
+import java.util.Arrays;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.validation.annotation.Validated;
@@ -53,6 +55,9 @@ public class ThirdCallbackController {
         switch (action) {
             case "app_subscribe": {
                 qlService.bindWxPushUidToRemark(ptPin, uid);
+                // 通知用户
+                WXPushUtil.send(systemConfigProperties.getWxPusherAppToken(), Arrays.asList(uid), "关注成功", StrUtil.format("京东账户: {}关联成功，请关注后续通知", ptPin), "1");
+                // 通知管理员
                 SpringUtil.publishEvent(new AdminNotifyEvent("订阅通知", StrUtil.format("pt_pin: {} 订阅了{}", ptPin, appName)));
                 break;
             }
