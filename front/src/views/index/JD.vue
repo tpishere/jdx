@@ -92,8 +92,8 @@ export default {
       expireTime: 0,
       haveCookie: false,
       form: {
-        mobile: "15622225555",
-        code: "2323"
+        mobile: "",
+        code: ""
       },
       cookieForm: {
         cookie: ''
