@@ -49,7 +49,11 @@ docker run -d \
 2. 所有涉及编辑和删除的操作，左滑即可（就像微信删除最近联系人一样...）
 
 ## 📌 一对一推送
-参考[ccwav/QLScript2](https://github.com/ccwav/QLScript2) 即可
+脚本参考[ccwav/QLScript2](https://github.com/ccwav/QLScript2) 即可
+
+**用户的uid扫码即可自动填充到备注上，需要在wPusher配置（wxPusher后台 -> 应用管理 -> 应用信息 -> 事件回调地址）如下：**
+
+`http://ip:port/api/third/wxPusher/follow/callback`
 
 ## 财富岛api
 `http://ip:port/api/cfd`
