@@ -96,8 +96,8 @@ export default {
       haveCookie: false,
       remain: 0,
       form: {
-        mobile: "15600045678",
-        code: "12345"
+        mobile: "",
+        code: ""
       },
       cookieForm: {
         cookie: ''

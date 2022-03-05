@@ -67,13 +67,13 @@ public class IndexController {
             throw new BizException("验证码不能为空");
         });
 
-//        JdInfo jdInfo = jdService.login(mobile, code);
-//        log.info(StrUtil.format("{}获取了京东Cookie", DesensitizedUtil.mobilePhone(mobile)));
+        JdInfo jdInfo = jdService.login(mobile, code);
+        log.info(StrUtil.format("{}获取了京东Cookie", DesensitizedUtil.mobilePhone(mobile)));
 
-        // 测试用
-        String testCookie = "pt_key=xxx7;pt_pin=jd_xxx01;";
-        String ptPin = JDXUtil.getPtPinFromCK(testCookie);
-        JdInfo jdInfo = JdInfo.builder().cookie(testCookie).ptPin(ptPin).build();
+//        // 测试用
+//        String testCookie = "pt_key=xxx7;pt_pin=jd_xxx01;";
+//        String ptPin = JDXUtil.getPtPinFromCK(testCookie);
+//        JdInfo jdInfo = JdInfo.builder().cookie(testCookie).ptPin(ptPin).build();
 
         return R.ok(jdInfo, "获取cookie成功");
     }
