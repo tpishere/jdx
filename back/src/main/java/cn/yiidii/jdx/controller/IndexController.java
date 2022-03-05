@@ -15,7 +15,6 @@ import cn.yiidii.jdx.util.jd.JDTaskUtil;
 import com.alibaba.fastjson.JSONObject;
 import java.util.List;
 import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Pattern;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.Assert;
@@ -68,13 +67,13 @@ public class IndexController {
             throw new BizException("验证码不能为空");
         });
 
-        JdInfo jdInfo = jdService.login(mobile, code);
-        log.info(StrUtil.format("{}获取了京东Cookie", DesensitizedUtil.mobilePhone(mobile)));
+//        JdInfo jdInfo = jdService.login(mobile, code);
+//        log.info(StrUtil.format("{}获取了京东Cookie", DesensitizedUtil.mobilePhone(mobile)));
 
-//        // 测试用
-//        String testCookie = "pt_key=xxx7;pt_pin=jd_xxx01;";
-//        String ptPin = JDXUtil.getPtPinFromCK(testCookie);
-//        JdInfo jdInfo = JdInfo.builder().cookie(testCookie).ptPin(ptPin).build();
+        // 测试用
+        String testCookie = "pt_key=xxx7;pt_pin=jd_xxx01;";
+        String ptPin = JDXUtil.getPtPinFromCK(testCookie);
+        JdInfo jdInfo = JdInfo.builder().cookie(testCookie).ptPin(ptPin).build();
 
         return R.ok(jdInfo, "获取cookie成功");
     }
@@ -100,7 +99,7 @@ public class IndexController {
         jo.put("remain", systemConfigProperties.getQls().stream()
                 .filter(ql -> ql.getDisabled() == 0 && ql.getUsed() < ql.getMax())
                 .map(ql -> ql.getMax() - ql.getUsed())
-                .reduce((a, b) -> a + b));
+                .reduce(0, (a, b) -> a + b));
         return R.ok(jo);
     }
 
