@@ -202,7 +202,6 @@ public class JDTaskService implements ITask {
                     log.debug(StrUtil.format("[兑换财富岛红包], pt_pin: {}, 最终结果: {}", r));
                     // 通知
                     String uid = JDXUtil.getUidFromRemark(env.getString("remarks"));
-                    System.err.println(StrUtil.format("{}: {}", JDXUtil.getPtPinFromCK(ck), uid));
                     if (StrUtil.isNotBlank(uid)) {
                         WXPushUtil.send(systemConfigProperties.getWxPusherAppToken(),
                                 Arrays.asList(uid), "财富岛兑换红包通知", CollUtil.join(result, StrPool.CRLF), "1");
