@@ -37,23 +37,33 @@ docker run -d \
 注意：
  - 记得放行端口
 
-### 2. 访问
+### 2. 前台访问
 这时候访问 `http://ip:port/` 就能访问了
 
 ### 3. 后台登录
-访问 `http://ip:port/admin`
+<p style="color: red; font-size: 32px"> 所有涉及配置修改的都在后台管理操作并修改，侧滑即可（不要在修改文件了！！！） </p>
+<p style="color: red; font-size: 32px"> 所有涉及配置修改的都在后台管理操作并修改，侧滑即可（不要在修改文件了！！！） </p>
+<p style="color: red; font-size: 32px"> 所有涉及配置修改的都在后台管理操作并修改，侧滑即可（不要在修改文件了！！！） </p>
+后台地址： `http://ip:port/admin`
 首次登录用户名：`admin`, 密码：`123465`, **千万记得修改密码！！！！！**
 
-## 📃 使用说明
-1. QL配置只能删除和新增，不能编辑操作
-2. 所有涉及编辑和删除的操作，左滑即可（就像微信删除最近联系人一样...）
-
 ## 📌 一对一推送
-脚本参考[ccwav/QLScript2](https://github.com/ccwav/QLScript2) 即可
+ 脚本参考[ccwav/QLScript2](https://github.com/ccwav/QLScript2) ，直接拉库即可
 
-**用户的uid扫码即可自动填充到备注上，需要在wPusher配置（wxPusher后台 -> 应用管理 -> 应用信息 -> 事件回调地址）如下：**
+--------------
+**接下来就是一对一的配置**
 
-`http://ip:port/api/third/wxPusher/follow/callback`
+1. 这里一对一的配置需要`wxPusher`的`appToken`，在`wxPusher`后台修改应用回调地址（`wxPusher后台` -> `应用管理` -> `应用信息` -> `事件回调地址`），修改格式如下
+    `http://ip:port/api/third/wxPusher/follow/callback`
+    > 这里的`ip:port`是`JDX`的`ip:port`
+   
+    原理是：在扫码获取Cookie的时候，会根据pt_pin生成一个二维码，用户扫码关注后，`wxPusher`会调用`JDX`的该接口，JDX会在青龙备注修改用户的`UID`，格式为`ccwav`采用通知的格式，`@@`分割。
+
+
+2. 在青龙后台配置`wxPusher`的`appToken`
+    ```javascript
+    export WP_APP_TOKEN_ONE="AT_xxx"
+    ```
 
 ## 财富岛api
 `http://ip:port/api/cfd`
