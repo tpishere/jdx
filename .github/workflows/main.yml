@@ -59,12 +59,5 @@ jobs:
           push: ${{ github.event_name != 'pull_request' }}
 # 给清单打上多个标签
           tags: |
-            user/app:latest
-            user/app:${{ steps.date.outputs.today }}            
-        run: echo Hello, world!
-
-      # Runs a set of commands using the runners shell
-      - name: Run a multi-line script
-        run: |
-          echo Add other actions to build,
-          echo test, and deploy your project.
+            user/jdx:latest
+            user/jdx:${{ steps.date.outputs.today }} 
